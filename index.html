@@ -451,113 +451,227 @@ async function dbSearch(q) {
   );
 }
 
+/* ─── Continuous Speech Recognizer ──────────────────────
+ *
+ * WHY breaks happen with plain SpeechRecognition:
+ *   1. Chrome auto-stops after ~60 s of any session
+ *   2. Chrome stops after ~5-8 s of silence (no-speech)
+ *   3. Reusing the same stopped instance throws an error
+ *   4. The gap between onend → start() loses words
+ *
+ * FIX — three-layer defence:
+ *   A. Fresh instance every restart (Chrome rejects re-used ones)
+ *   B. Immediate restart inside onend (< 50 ms gap)
+ *   C. Watchdog timer: if the instance has been dead for
+ *      > 1.5 s without us intending to stop, force-restart
+ * ────────────────────────────────────────────────────── */
+const Recognizer = (() => {
+  let _alive      = false;   // true while we want recognition running
+  let _running    = false;   // true between onstart and onend
+  let _restarting = false;   // debounce: one restart at a time
+  let _instance   = null;    // current SpeechRecognition object
+  let _watchdog   = null;    // interval handle
+  let _onResult   = null;    // callback(text, isFinal)
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function _spawn() {
+    if (!_alive || _restarting) return;
+    _restarting = true;
+
+    // Always create a brand-new instance — Chrome refuses to restart
+    // a stopped one and throws InvalidStateError
+    const r = new SR();
+    _instance = r;
+    r.continuous     = true;
+    r.interimResults = true;
+    r.lang           = 'en-US';
+    r.maxAlternatives = 1;
+
+    r.onstart = () => {
+      _running    = true;
+      _restarting = false;
+    };
+
+    r.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          const text = e.results[i][0].transcript.trim();
+          if (text && _onResult) _onResult(text, true);
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      if (_onResult) _onResult(interim, false);
+    };
+
+    r.onerror = (e) => {
+      // 'not-allowed' = user denied mic; stop permanently
+      if (e.error === 'not-allowed') { _alive = false; return; }
+      // 'aborted' = we called abort() ourselves; onend will handle restart
+      // everything else (no-speech, network, audio-capture) → let onend restart
+      _running = false;
+    };
+
+    r.onend = () => {
+      _running    = false;
+      _restarting = false;
+      if (!_alive) return;
+      // Restart immediately with a tiny delay so the browser
+      // can release its audio capture lock cleanly
+      setTimeout(_spawn, 80);
+    };
+
+    try {
+      r.start();
+    } catch (err) {
+      // start() can throw if called too quickly — back off and retry
+      _restarting = false;
+      _running    = false;
+      if (_alive) setTimeout(_spawn, 250);
+    }
+  }
+
+  return {
+    start(onResult) {
+      if (!SR) return false;
+      _alive      = true;
+      _running    = false;
+      _restarting = false;
+      _onResult   = onResult;
+      _spawn();
+
+      // Watchdog: poll every 1.5 s — if we're alive but not running
+      // and not already restarting, kick it back to life
+      _watchdog = setInterval(() => {
+        if (_alive && !_running && !_restarting) {
+          console.warn('[VoiceLog] Recognizer stalled — forcing restart');
+          _spawn();
+        }
+      }, 1500);
+
+      return true;
+    },
+
+    stop() {
+      _alive      = false;
+      _running    = false;
+      _restarting = false;
+      clearInterval(_watchdog);
+      _watchdog = null;
+      try { _instance?.abort(); } catch {}
+      _instance = null;
+    },
+  };
+})();
+
 /* ─── Recording Engine ──────────────────────────────────*/
 async function startRecording(title) {
-  S.error='';
+  S.error = '';
+
+  // 1 ── Microphone (required)
   let micStream;
   try { micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
-  catch { S.error='Microphone access denied — please allow it and try again.'; render(); return; }
+  catch { S.error = 'Microphone access denied — please allow it and try again.'; render(); return; }
 
-  const src={mic:true,sys:false};
-  let sysStream=null;
+  // 2 ── System audio via screen-share (optional)
+  const src = {mic:true, sys:false};
+  let sysStream = null;
   try {
     sysStream = await navigator.mediaDevices.getDisplayMedia({
-      audio:{echoCancellation:false,noiseSuppression:false,sampleRate:44100},
-      video:{width:1,height:1,frameRate:1}
+      audio: {echoCancellation:false, noiseSuppression:false, sampleRate:44100},
+      video: {width:1, height:1, frameRate:1},
     });
-    if(sysStream.getAudioTracks().length) src.sys=true;
+    if (sysStream.getAudioTracks().length) src.sys = true;
   } catch {}
 
-  S.sources=src; S._srcSnap={...src};
+  S.sources = src; S._srcSnap = {...src};
 
+  // 3 ── Web Audio: mix streams + level meter
   try {
-    const ctx=new AudioContext(); S._actx=ctx;
-    const dest=ctx.createMediaStreamDestination();
+    const ctx = new AudioContext(); S._actx = ctx;
+    const dest = ctx.createMediaStreamDestination();
     ctx.createMediaStreamSource(micStream).connect(dest);
-    if(sysStream?.getAudioTracks().length) ctx.createMediaStreamSource(sysStream).connect(dest);
+    if (sysStream?.getAudioTracks().length)
+      ctx.createMediaStreamSource(sysStream).connect(dest);
 
-    const analyser=ctx.createAnalyser(); analyser.fftSize=64;
+    const analyser = ctx.createAnalyser(); analyser.fftSize = 64;
     ctx.createMediaStreamSource(micStream).connect(analyser);
-    const buf=new Uint8Array(analyser.frequencyBinCount);
-    const tick=()=>{
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    const tick = () => {
       analyser.getByteFrequencyData(buf);
-      S.audioLevel=Math.min(1,buf.reduce((a,v)=>a+v,0)/buf.length/45);
-      // update meter bars live without full re-render
-      document.querySelectorAll('.mbar').forEach((b,i)=>{
-        b.classList.toggle('on', S.audioLevel*16>i);
-      });
-      S._raf=requestAnimationFrame(tick);
+      S.audioLevel = Math.min(1, buf.reduce((a,v)=>a+v,0) / buf.length / 45);
+      document.querySelectorAll('.mbar').forEach((b,i) =>
+        b.classList.toggle('on', S.audioLevel * 16 > i));
+      S._raf = requestAnimationFrame(tick);
     };
     tick();
 
-    const rec=new MediaRecorder(dest.stream); S._recorder=rec; S._chunks=[];
-    rec.ondataavailable=e=>{ if(e.data.size>0) S._chunks.push(e.data); };
+    // 4 ── MediaRecorder on the mixed stream
+    const rec = new MediaRecorder(dest.stream);
+    S._recorder = rec; S._chunks = [];
+    rec.ondataavailable = e => { if (e.data.size > 0) S._chunks.push(e.data); };
     rec.start(1000);
-  } catch(e){ console.error('Audio setup:',e); }
+  } catch(e) { console.error('Audio setup:', e); }
 
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(SR) {
-    const r=new SR(); S._recognition=r;
-    r.continuous=true; r.interimResults=true; r.lang='en-US';
-    let alive=true;
-    r.onresult=e=>{
-      let itm='';
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        if(e.results[i].isFinal){
-          const text=e.results[i][0].transcript.trim();
-          if(text){
-            const line={id:Date.now()+Math.random(),text,speaker:'You',ts:fmtTs()};
-            S.lines.push(line); S._linesSnap=[...S.lines];
-            // Append line to DOM without full re-render
-            appendTranscriptLine(line);
-            removeInterim();
-          }
-        } else itm+=e.results[i][0].transcript;
-      }
-      S.interim=itm;
-      updateInterim(itm);
-    };
-    r.onerror=e=>{ if(['aborted','not-allowed'].includes(e.error)) alive=false; };
-    r.onend=()=>{ if(alive){try{r.start();}catch{}} };
-    r.start();
-  }
+  // 5 ── Continuous speech recognition (never stops until we say so)
+  Recognizer.start((text, isFinal) => {
+    if (isFinal) {
+      const line = {id: Date.now() + Math.random(), text, speaker:'You', ts: fmtTs()};
+      S.lines.push(line);
+      S._linesSnap = [...S.lines];
+      appendTranscriptLine(line);
+      removeInterim();
+    } else {
+      S.interim = text;
+      updateInterim(text);
+    }
+  });
 
-  const t0=Date.now();
-  S._timer=setInterval(()=>{
-    S.recTime=Math.floor((Date.now()-t0)/1000);
-    S._timeSnap=S.recTime;
-    const te=el('rec-timer');
-    if(te) te.textContent=fmt(S.recTime);
-    const he=el('hdr-timer');
-    if(he) he.textContent='REC '+fmt(S.recTime);
-  },1000);
+  // 6 ── Wall-clock timer
+  const t0 = Date.now();
+  S._timer = setInterval(() => {
+    S.recTime   = Math.floor((Date.now() - t0) / 1000);
+    S._timeSnap = S.recTime;
+    const te = el('rec-timer');  if (te) te.textContent = fmt(S.recTime);
+    const he = el('hdr-timer');  if (he) he.textContent = 'REC ' + fmt(S.recTime);
+  }, 1000);
 
-  S.meetTitle=title; S._titleSnap=title;
-  S.lines=[]; S._linesSnap=[];
-  S.interim=''; S.recTime=0; S.isRec=true;
-  S.tab='recording'; render();
+  S.meetTitle = title; S._titleSnap = title;
+  S.lines = []; S._linesSnap = [];
+  S.interim = ''; S.recTime = 0; S.isRec = true;
+  S.tab = 'recording'; render();
 }
 
 function stopRecording() {
-  return new Promise(resolve=>{
-    try{ S._recognition.onend=null; S._recognition.abort(); }catch{}
+  return new Promise(resolve => {
+    // Stop the continuous recognizer cleanly
+    Recognizer.stop();
     clearInterval(S._timer);
     cancelAnimationFrame(S._raf);
-    try{ S._actx?.close(); }catch{}
+    try { S._actx?.close(); } catch {}
 
-    const lines=[...S._linesSnap], dur=S._timeSnap;
-    const title=S._titleSnap, src={...S._srcSnap};
-    const wordCount=lines.reduce((a,l)=>a+l.text.split(' ').length,0);
+    const lines     = [...S._linesSnap];
+    const dur       = S._timeSnap;
+    const title     = S._titleSnap;
+    const src       = {...S._srcSnap};
+    const wordCount = lines.reduce((a,l) => a + l.text.split(' ').length, 0);
 
-    S.isRec=false; S.audioLevel=0; S.interim=''; S.recTime=0;
+    S.isRec = false; S.audioLevel = 0; S.interim = ''; S.recTime = 0;
 
-    const done=blob=>resolve({id:Date.now().toString(),title,date:new Date(),duration:dur,
-      transcript:lines,audioBlob:blob,hasMic:src.mic,hasSystem:src.sys,wordCount});
+    const done = blob => resolve({
+      id: Date.now().toString(), title, date: new Date(), duration: dur,
+      transcript: lines, audioBlob: blob, hasMic: src.mic, hasSystem: src.sys, wordCount,
+    });
 
-    if(S._recorder?.state!=='inactive'){
-      S._recorder.onstop=()=>done(S._chunks.length?new Blob(S._chunks,{type:'audio/webm'}):null);
+    if (S._recorder?.state !== 'inactive') {
+      S._recorder.onstop = () =>
+        done(S._chunks.length ? new Blob(S._chunks, {type:'audio/webm'}) : null);
       S._recorder.stop();
-    } else done(null);
+    } else {
+      done(null);
+    }
   });
 }
 
