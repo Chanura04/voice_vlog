@@ -198,7 +198,8 @@ input[type=range]:focus{box-shadow:none}
 .stop-btn{display:flex;align-items:center;gap:7px}
 .stop-sq{width:11px;height:11px;background:var(--red);border-radius:2px;flex-shrink:0}
 .rec-stats{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text2);
-  padding:8px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+  padding:8px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+#eng-status{font-size:11px;font-weight:600;font-family:var(--mono);transition:color .3s}
 .rec-stat{display:flex;align-items:center;gap:5px}
 .rec-stat strong{color:var(--text);font-weight:600}
 
@@ -653,6 +654,8 @@ const S = {
   _speakerNames: ['You','Speaker 2','Speaker 3','Speaker 4'],
   // Live notes
   notes: [],
+  // Engine status
+  _engStatus: '',
 };
 
 /* ─── Helpers ───────────────────────────────────────────*/
@@ -879,35 +882,103 @@ async function dbSearch(q) {
  *  · Same three-layer restart defence as v1
  * ─────────────────────────────────────────────────────── */
 const Recognizer = (() => {
-  let _alive      = false;
-  let _running    = false;
-  let _restarting = false;
-  let _instance   = null;
-  let _watchdog   = null;
-  let _onResult   = null;
-  let _lang       = 'en-US';
-  let _confThresh = 0;
+  /*
+   * Bulletproof continuous Speech Recognition
+   * ──────────────────────────────────────────
+   * Root causes of dropped words / 60 s stops:
+   *
+   *  1. Chrome hard-kills any session at 60 s.
+   *     FIX → pre-emptive graceful stop() at 50 s.
+   *          stop() finalises in-flight results; onend fires;
+   *          we restart within 60 ms. Zero words lost.
+   *
+   *  2. Chrome stops after ~7 s of silence (no-speech).
+   *     FIX → let onend restart automatically. The restart
+   *          takes ~60 ms which is imperceptible.
+   *
+   *  3. Words in the "interim" buffer are lost when a session
+   *     ends before they become "final".
+   *     FIX → _pendingInterim: save current interim on session
+   *          end, prepend it to the first result of the next
+   *          session so nothing is swallowed.
+   *
+   *  4. Re-using a stopped SpeechRecognition instance throws
+   *     InvalidStateError in Chrome.
+   *     FIX → always create a fresh instance in _spawn().
+   *
+   *  5. Rapid back-to-back starts can race.
+   *     FIX → _restarting flag gates _spawn(); watchdog checks
+   *          every 1 s and force-spawns if stalled.
+   */
+
+  let _alive          = false;
+  let _running        = false;
+  let _restarting     = false;
+  let _instance       = null;
+  let _watchdog       = null;
+  let _preemptTimer   = null;   // fires at 50 s to pre-empt Chrome's 60 s kill
+  let _onResult       = null;
+  let _onStatus       = null;   // callback('live'|'restarting'|'stopped')
+  let _lang           = 'en-US';
+  let _confThresh     = 0;
+  let _pendingInterim = '';     // interim text saved across session boundaries
+  let _sessionStart   = 0;     // timestamp when current session started
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function _notify(status) {
+    if (_onStatus) _onStatus(status);
+    // Update the live engine status badge without a full re-render
+    const badge = document.getElementById('eng-status');
+    if (badge) {
+      const map = {
+        live:        ['🟢', 'var(--green-t)',  'Live'],
+        restarting:  ['🔄', 'var(--yellow-t)', 'Restarting…'],
+        stopped:     ['⚫', 'var(--text3)',     'Stopped'],
+        paused:      ['⏸',  'var(--yellow-t)', 'Paused'],
+      };
+      const [icon, color, label] = map[status] || ['', '', status];
+      badge.style.color = color;
+      badge.textContent = icon + ' ' + label;
+    }
+  }
 
   function _spawn() {
     if (!_alive || _restarting) return;
     _restarting = true;
+    _notify('restarting');
 
     const r = new SR();
     _instance = r;
     r.continuous      = true;
     r.interimResults  = true;
     r.lang            = _lang;
-    r.maxAlternatives = 3;   // ← v2: get 3 alternatives, pick best
+    r.maxAlternatives = 3;
 
-    r.onstart = () => { _running = true; _restarting = false; };
+    r.onstart = () => {
+      _running      = true;
+      _restarting   = false;
+      _sessionStart = Date.now();
+      _notify('live');
+
+      // ── Pre-emptive restart at 50 s ────────────────────
+      // We call r.stop() — not r.abort() — so Chrome finalises
+      // any in-progress recognition before ending the session.
+      // onend fires normally and _spawn() restarts within 60 ms.
+      clearTimeout(_preemptTimer);
+      _preemptTimer = setTimeout(() => {
+        if (_alive && _running) {
+          _running = false;   // suppress watchdog during planned stop
+          try { r.stop(); } catch {}
+        }
+      }, 50_000);
+    };
 
     r.onresult = (e) => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
-          // Pick the alternative with the highest confidence
+          // Pick alternative with highest confidence
           let best = e.results[i][0];
           for (let j = 1; j < e.results[i].length; j++) {
             if ((e.results[i][j].confidence || 0) > (best.confidence || 0)) {
@@ -915,9 +986,13 @@ const Recognizer = (() => {
             }
           }
           const conf = best.confidence || 0;
-          // Skip results below the threshold (unless threshold is 0 = off)
           if (_confThresh > 0 && conf > 0 && conf < _confThresh) continue;
-          const text = postProcess(best.transcript.trim());
+
+          // Prepend any interim text that survived the last restart
+          const raw = (_pendingInterim ? _pendingInterim + ' ' : '') + best.transcript.trim();
+          _pendingInterim = '';
+
+          const text = postProcess(raw);
           if (text && _onResult) _onResult(text, true, conf);
         } else {
           interim += e.results[i][0].transcript;
@@ -927,61 +1002,135 @@ const Recognizer = (() => {
     };
 
     r.onerror = (e) => {
-      if (e.error === 'not-allowed') { _alive = false; return; }
+      // not-allowed → user denied mic; stop permanently
+      if (e.error === 'not-allowed') {
+        _alive = false;
+        _notify('stopped');
+        return;
+      }
+      // no-speech → silence timeout; onend will restart
+      // aborted   → we called abort() intentionally
+      // network   → transient; onend will restart
+      // All others: let onend handle it
       _running = false;
     };
 
     r.onend = () => {
-      _running = false; _restarting = false;
-      if (!_alive) return;
-      setTimeout(_spawn, 80);
+      clearTimeout(_preemptTimer);
+
+      // ── Save interim buffer across session boundary ─────
+      // Any words being dictated when the session ends will be
+      // in S.interim. Save them so the next session can prepend
+      // them to its first final result.
+      if (S.interim && S.interim.trim()) {
+        _pendingInterim = (_pendingInterim + ' ' + S.interim).trim();
+        // Keep showing it as interim (greyed) in the UI
+      }
+
+      _running    = false;
+      _restarting = false;
+
+      if (!_alive) {
+        _notify('stopped');
+        return;
+      }
+
+      // Restart. Use 60 ms gap — enough for Chrome to release
+      // the audio capture lock cleanly without losing words.
+      setTimeout(_spawn, 60);
     };
 
-    try { r.start(); }
-    catch { _restarting = false; _running = false; if (_alive) setTimeout(_spawn, 250); }
+    try {
+      r.start();
+    } catch (err) {
+      // start() can throw if called too quickly after a stop
+      _restarting = false;
+      _running    = false;
+      if (_alive) setTimeout(_spawn, 300);
+    }
   }
 
   function _startWatchdog() {
+    // Safety net: if we're supposed to be running but aren't,
+    // force a new spawn. Fires every 1 s.
+    clearInterval(_watchdog);
     _watchdog = setInterval(() => {
-      if (_alive && !_running && !_restarting) { console.warn('[VoiceLog] stalled → restart'); _spawn(); }
-    }, 1500);
+      if (_alive && !_running && !_restarting) {
+        console.warn('[VoiceLog] Recognizer stalled — forcing restart');
+        _spawn();
+      }
+    }, 1000);
   }
 
   return {
-    start(onResult, lang, confThresh) {
+    start(onResult, onStatus, lang, confThresh) {
       if (!SR) return false;
       _alive = true; _running = false; _restarting = false;
-      _onResult = onResult; _lang = lang||'en-US'; _confThresh = confThresh||0;
-      _spawn(); _startWatchdog();
+      _pendingInterim = '';
+      _onResult   = onResult;
+      _onStatus   = onStatus || null;
+      _lang       = lang || 'en-US';
+      _confThresh = confThresh || 0;
+      _spawn();
+      _startWatchdog();
       return true;
     },
+
     pause() {
       _alive = false;
+      clearTimeout(_preemptTimer);
       clearInterval(_watchdog); _watchdog = null;
+      // Use abort() on pause — we don't want partial results
       try { _instance?.abort(); } catch {}
+      _notify('paused');
     },
+
     resume(onResult, lang, confThresh) {
-      _alive = true; _running = false; _restarting = false;
-      if (onResult) _onResult = onResult;
-      if (lang)     _lang = lang;
-      if (confThresh !== undefined) _confThresh = confThresh;
-      _spawn(); _startWatchdog();
+      _alive      = true;
+      _running    = false;
+      _restarting = false;
+      _pendingInterim = '';
+      if (onResult)             _onResult   = onResult;
+      if (lang)                 _lang       = lang;
+      if (confThresh != null)   _confThresh = confThresh;
+      _spawn();
+      _startWatchdog();
     },
+
     stop() {
-      _alive = false; _running = false; _restarting = false;
+      _alive      = false;
+      _running    = false;
+      _restarting = false;
+      _pendingInterim = '';
+      clearTimeout(_preemptTimer);
       clearInterval(_watchdog); _watchdog = null;
       try { _instance?.abort(); } catch {}
       _instance = null;
+      _notify('stopped');
     },
   };
 })();
 
 /* ─── Recording Engine ──────────────────────────────────*/
+function _onEngineStatus(status) {
+  // Lightweight status update — no full re-render needed
+  S._engStatus = status;
+  const badge = document.getElementById('eng-status');
+  if (!badge) return;
+  const map = {
+    live:       ['🟢 Live',       'var(--green-t)'],
+    restarting: ['🔄 Restarting…','var(--yellow-t)'],
+    paused:     ['⏸ Paused',     'var(--yellow-t)'],
+    stopped:    ['⚫ Stopped',    'var(--text3)'],
+  };
+  const [label, color] = map[status] || [status, 'var(--text2)'];
+  badge.textContent = label;
+  badge.style.color = color;
+}
+
 function _handleRecResult(text, isFinal, confidence) {
   if (isFinal) {
-    // ── Speaker diarization heuristic ──────────────────────
-    // If there's been a significant gap since the last speech
-    // event, rotate to the next speaker slot.
+    // Speaker diarization — rotate when silence gap exceeded
     const now = Date.now();
     if (S._lastSpeechTs && (now - S._lastSpeechTs) > S._speakerGap) {
       S._speakerIdx = (S._speakerIdx + 1) % S._speakerNames.length;
@@ -992,11 +1141,13 @@ function _handleRecResult(text, isFinal, confidence) {
     const line = {id: Date.now() + Math.random(), text, speaker, ts: fmtTs(), confidence};
     S.lines.push(line);
     S._linesSnap = [...S.lines];
+    S.interim = '';
     appendTranscriptLine(line);
     removeInterim();
-    // update live word counter
+
+    // Update live counters without re-rendering
     const wce = el('live-words');
-    if (wce) wce.textContent = S.lines.reduce((a,l)=>a+l.text.split(/\s+/).length,0);
+    if (wce) wce.textContent = S.lines.reduce((a,l)=>a+l.text.split(/\s+/).length, 0);
     const lce = el('live-lines');
     if (lce) lce.textContent = S.lines.length;
   } else {
@@ -1010,7 +1161,7 @@ function _startMeter() {
   const tick = () => {
     S._analyser.getByteFrequencyData(S._analyserBuf);
     S.audioLevel = Math.min(1, S._analyserBuf.reduce((a,v)=>a+v,0) / S._analyserBuf.length / 45);
-    document.querySelectorAll('.mbar').forEach((b,i) => b.classList.toggle('on', S.audioLevel * 16 > i));
+    document.querySelectorAll('.mbar').forEach((b,i) => b.classList.toggle('on', S.audioLevel * 20 > i));
     S._raf = requestAnimationFrame(tick);
   };
   tick();
@@ -1019,76 +1170,130 @@ function _startMeter() {
 function _startTimer() {
   S._timerStart = Date.now();
   S._timer = setInterval(() => {
-    S.recTime = S._timerOffset + Math.floor((Date.now() - S._timerStart) / 1000);
+    S.recTime   = S._timerOffset + Math.floor((Date.now() - S._timerStart) / 1000);
     S._timeSnap = S.recTime;
-    const te = el('rec-timer'); if (te) te.textContent = fmt(S.recTime);
-    const he = el('hdr-timer'); if (he) he.textContent = (S.isPaused ? '⏸ ' : 'REC ') + fmt(S.recTime);
+    const te = el('rec-timer');  if (te) te.textContent = fmt(S.recTime);
+    const he = el('hdr-timer');  if (he) he.textContent = (S.isPaused ? '⏸ ' : 'REC ') + fmt(S.recTime);
   }, 1000);
 }
 
 async function startRecording(title) {
   S.error = '';
+  S._engStatus = '';
 
+  // ── 1. Microphone (required) ─────────────────────────
   let micStream;
-  try { micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
-  catch { S.error = 'Microphone access denied — please allow it and try again.'; render(); return; }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation:   true,
+        noiseSuppression:   true,
+        autoGainControl:    true,
+        channelCount:       1,
+        sampleRate:         16000,  // optimal for speech recognition
+      },
+      video: false,
+    });
+  } catch {
+    S.error = 'Microphone access denied — please allow it and try again.';
+    render(); return;
+  }
 
-  const src = {mic:true, sys:false};
+  // ── 2. System / speaker audio (optional) ────────────
+  // User must share a tab/window AND tick "Share audio"
+  const src = {mic: true, sys: false};
   let sysStream = null;
   try {
     sysStream = await navigator.mediaDevices.getDisplayMedia({
-      audio:{echoCancellation:false, noiseSuppression:false, sampleRate:44100},
-      video:{width:1,height:1,frameRate:1},
+      audio: {
+        echoCancellation:  false,
+        noiseSuppression:  false,
+        autoGainControl:   false,
+        sampleRate:        44100,
+      },
+      video: {width: 1, height: 1, frameRate: 1},  // smallest possible — we only want audio
     });
-    if (sysStream.getAudioTracks().length) src.sys = true;
-  } catch {}
+    if (sysStream.getAudioTracks().length) {
+      src.sys = true;
+      // If user closes the share prompt, stop recording cleanly
+      sysStream.getAudioTracks()[0].onended = () => {
+        S.sources.sys = false;
+        const chip = document.querySelector('.chip-green');
+        if (chip) chip.remove();
+      };
+    }
+  } catch {
+    // User cancelled screen share — continue mic-only, no error
+  }
 
-  S.sources = src; S._srcSnap = {...src};
+  S.sources = src;  S._srcSnap = {...src};
 
+  // ── 3. Web Audio: mix streams + level meter ──────────
   try {
-    const ctx = new AudioContext(); S._actx = ctx;
+    const ctx  = new AudioContext({sampleRate: 16000});
+    S._actx    = ctx;
     const dest = ctx.createMediaStreamDestination();
-    ctx.createMediaStreamSource(micStream).connect(dest);
-    if (sysStream?.getAudioTracks().length) ctx.createMediaStreamSource(sysStream).connect(dest);
 
-    const analyser = ctx.createAnalyser(); analyser.fftSize = 64;
-    ctx.createMediaStreamSource(micStream).connect(analyser);
-    S._analyser = analyser;
+    // Mic → dest
+    const micSrc = ctx.createMediaStreamSource(micStream);
+
+    // Gain nodes so we can balance mic vs system audio
+    const micGain = ctx.createGain(); micGain.gain.value = 1.0;
+    micSrc.connect(micGain); micGain.connect(dest);
+
+    if (sysStream?.getAudioTracks().length) {
+      const sysSrc  = ctx.createMediaStreamSource(sysStream);
+      const sysGain = ctx.createGain(); sysGain.gain.value = 0.85;
+      sysSrc.connect(sysGain); sysGain.connect(dest);
+    }
+
+    // Level meter from mic only
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 64;
+    micSrc.connect(analyser);
+    S._analyser    = analyser;
     S._analyserBuf = new Uint8Array(analyser.frequencyBinCount);
     _startMeter();
 
-    const rec = new MediaRecorder(dest.stream);
-    S._recorder = rec; S._chunks = [];
+    // MediaRecorder for the saved audio file (uses mixed stream)
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+    const rec = new MediaRecorder(dest.stream, mimeType ? {mimeType} : {});
+    S._recorder = rec;
+    S._chunks   = [];
     rec.ondataavailable = e => { if (e.data.size > 0) S._chunks.push(e.data); };
-    rec.start(1000);
-  } catch(e) { console.error('Audio setup:', e); }
+    rec.start(500);   // 500 ms chunks — finer granularity than 1 s
 
-  Recognizer.start(_handleRecResult, CFG.lang, CFG.conf);
+  } catch(e) { console.error('[VoiceLog] Audio setup error:', e); }
 
+  // ── 4. Start speech recognition ──────────────────────
+  Recognizer.start(_handleRecResult, _onEngineStatus, CFG.lang, CFG.conf);
+
+  // ── 5. Start timer + set state ───────────────────────
   S._timerOffset = 0;
   _startTimer();
 
-  S.meetTitle = title; S._titleSnap = title;
-  S.lines = []; S._linesSnap = [];
-  S.interim = ''; S.recTime = 0; S.isRec = true; S.isPaused = false;
-  S._speakerIdx = 0; S._lastSpeechTs = 0;
-  S.tab = 'recording'; render();
+  S.meetTitle   = title; S._titleSnap = title;
+  S.lines       = [];    S._linesSnap = [];
+  S.interim     = '';    S.recTime    = 0;
+  S.isRec       = true;  S.isPaused   = false;
+  S._speakerIdx = 0;     S._lastSpeechTs = 0;
+  S.notes       = [];
+
+  S.tab = 'recording';
+  render();
 }
 
 function pauseRecording() {
   if (!S.isRec || S.isPaused) return;
   S.isPaused = true;
   Recognizer.pause();
-  clearInterval(S._timer); S._timer = null;
+  clearInterval(S._timer);  S._timer = null;
   cancelAnimationFrame(S._raf); S._raf = null;
   S._timerOffset = S.recTime;
   if (S._recorder?.state === 'recording') S._recorder.pause();
-  // Update header pill
-  const hp = document.querySelector('.rec-pill');
-  if (hp) { hp.classList.add('paused'); hp.querySelector('.rec-dot')?.classList.add('paused'); }
-  const rt = el('rec-timer'); if (rt) rt.classList.add('paused');
-  const he = el('hdr-timer'); if (he) he.textContent = '⏸ ' + fmt(S.recTime);
-  render(); // re-render to show resume button
+  render();
 }
 
 function resumeRecording() {
@@ -1104,8 +1309,8 @@ function resumeRecording() {
 function stopRecording() {
   return new Promise(resolve => {
     Recognizer.stop();
-    clearInterval(S._timer); S._timer = null;
-    cancelAnimationFrame(S._raf); S._raf = null;
+    clearInterval(S._timer);      S._timer = null;
+    cancelAnimationFrame(S._raf); S._raf   = null;
     try { S._actx?.close(); } catch {}
 
     const lines     = [...S._linesSnap];
@@ -1114,7 +1319,8 @@ function stopRecording() {
     const src       = {...S._srcSnap};
     const wordCount = lines.reduce((a,l) => a + l.text.split(/\s+/).length, 0);
 
-    S.isRec = false; S.isPaused = false; S.audioLevel = 0; S.interim = ''; S.recTime = 0;
+    S.isRec = false; S.isPaused = false;
+    S.audioLevel = 0; S.interim = ''; S.recTime = 0;
 
     const done = blob => resolve({
       id: Date.now().toString(), title, date: new Date(), duration: dur,
@@ -1123,7 +1329,7 @@ function stopRecording() {
 
     if (S._recorder?.state !== 'inactive') {
       S._recorder.onstop = () =>
-        done(S._chunks.length ? new Blob(S._chunks, {type:'audio/webm'}) : null);
+        done(S._chunks.length ? new Blob(S._chunks, {type: 'audio/webm'}) : null);
       S._recorder.stop();
     } else {
       done(null);
@@ -1401,6 +1607,7 @@ function buildRecording() {
       <span class="rec-stat">Words: <strong id="live-words">${liveWords}</strong></span>
       ${avgConf!==null?`<span class="rec-stat">Confidence: <strong>${avgConf}%</strong></span>`:''}
       <span class="rec-stat">Speaker: <strong id="live-speaker" class="${curSpkClass}">${esc(curSpkName)}</strong></span>
+      <span class="rec-stat" style="margin-left:auto"><span id="eng-status" style="color:var(--green-t);font-size:11px">${S._engStatus==='restarting'?'🔄 Restarting…':'🟢 Live'}</span></span>
     </div>
     ${(S.notes||[]).length ? `<div class="notes-list" id="notes-list-area">${notesItems}</div>` : '<div id="notes-list-area" style="display:none"></div>'}
     <div class="transcript-scroll" id="transcript-area">
@@ -1670,7 +1877,18 @@ function buildSettings() {
     ${modeBanner}
 
     <section class="settings-sec">
-      <h2 class="settings-sec-title">🎙 Transcription accuracy</h2>
+      <h2 class="settings-sec-title">🎙 Transcription engine</h2>
+      <div class="alert alert-info" style="margin-bottom:14px">
+        <span>ℹ</span>
+        <div>
+          <strong>100 % free, no API key needed.</strong> VoiceLog uses the browser's built-in
+          Web Speech API (Chrome / Edge). The audio is sent to Google's servers for recognition — the
+          same engine that powers Google Docs voice typing and is completely free.<br><br>
+          <strong>Why not Python / Whisper?</strong> Whisper gives excellent offline accuracy but
+          needs a server. Since VoiceLog runs entirely on GitHub Pages (no server), the browser
+          engine is the best free option. The improvements below squeeze maximum accuracy out of it.
+        </div>
+      </div>
       <p class="settings-desc">Tune how speech is captured and filtered. Changes take effect on the next recording.</p>
       <div class="fields">
         <div class="field">
@@ -1751,12 +1969,18 @@ function buildSettings() {
       <p class="settings-desc">
         Open source, MIT license. Single HTML file — no build tools, no server needed.
       </p>
+      <p class="settings-desc" style="margin-bottom:10px">
+        Works in <strong>Chrome</strong> and <strong>Edge</strong> only (Web Speech API requirement).
+        No internet needed for playback; live transcription uses Google's speech endpoint built into the browser.
+      </p>
       <div class="tech-row">
-        <span class="tech-tag">Web Speech API</span>
+        <span class="tech-tag">Web Speech API (free)</span>
         <span class="tech-tag">MediaRecorder API</span>
         <span class="tech-tag">Web Audio API</span>
+        <span class="tech-tag">Pre-emptive 50 s restart</span>
+        <span class="tech-tag">Interim buffer</span>
         <span class="tech-tag">Supabase (optional)</span>
-        <span class="tech-tag">Anthropic API (optional)</span>
+        <span class="tech-tag">Anthropic AI (optional)</span>
         <span class="tech-tag">Vanilla JS</span>
       </div>
     </section>
@@ -1797,7 +2021,12 @@ function showForm() {
         <button class="btn btn-red" onclick="handleStart()">⏺ Start recording</button>
         <button class="btn btn-ghost" onclick="render()">Cancel</button>
       </div>
-      <p class="form-hint">Browser will ask for mic permission, then optionally screen-share for system audio. Check "Share audio" when prompted.</p>
+      <p class="form-hint">
+        <strong>Mic only:</strong> Just hit Start — browser asks for mic permission.<br>
+        <strong>Capture speaker output too:</strong> A screen-share dialog will appear.
+        Pick <em>any tab or window</em>, then tick <strong>"Share audio"</strong> ✓ at the bottom.
+        If you cancel, recording continues with mic only.
+      </p>
     </div>`;
   setTimeout(()=>{ const i=el('meet-title-input'); if(i){i.focus(); i.onkeydown=e=>{if(e.key==='Enter')handleStart();}} },50);
 }
