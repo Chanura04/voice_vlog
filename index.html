@@ -19,6 +19,7 @@
   --green:#16a34a;--green-dim:#f0fdf4;--green-b:#bbf7d0;--green-t:#15803d;
   --blue:#2563eb;--blue-dim:#eff6ff;--blue-b:#bfdbfe;--blue-t:#1d4ed8;
   --yellow:#ca8a04;--yellow-dim:#fefce8;--yellow-b:#fde68a;--yellow-t:#a16207;
+  --purple:#7c3aed;--purple-dim:#f5f3ff;--purple-b:#ddd6fe;--purple-t:#6d28d9;
   --mono:'JetBrains Mono',monospace;
   --sans:'Inter',system-ui,sans-serif;
   --r:10px;--r-lg:14px;--r-xl:20px;
@@ -33,6 +34,7 @@
     --green:#4ade80;--green-dim:#0d1f14;--green-b:#14532d;--green-t:#86efac;
     --blue:#60a5fa;--blue-dim:#0d1929;--blue-b:#1e3a5f;--blue-t:#93c5fd;
     --yellow:#facc15;--yellow-dim:#1c1500;--yellow-b:#713f12;--yellow-t:#fde047;
+    --purple:#a78bfa;--purple-dim:#1a1030;--purple-b:#4c1d95;--purple-t:#c4b5fd;
     --shadow:0 1px 4px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.04);
   }
 }
@@ -63,8 +65,10 @@ mark{background:var(--yellow-dim);color:var(--yellow-t);border-radius:3px;paddin
   border:1px solid var(--red-b);color:var(--red-t);border-radius:999px;
   padding:3px 12px;font-size:12px;font-weight:600;font-family:var(--mono);
   position:absolute;left:50%;transform:translateX(-50%)}
+.rec-pill.paused{background:var(--yellow-dim);border-color:var(--yellow-b);color:var(--yellow-t)}
 .rec-dot{width:7px;height:7px;border-radius:50%;background:var(--red);
   animation:blink 1.1s ease-in-out infinite}
+.rec-dot.paused{background:var(--yellow);animation:none}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
 .hdr-right{display:flex;align-items:center;gap:8px;margin-left:auto}
 .storage-chip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;
@@ -93,6 +97,10 @@ mark{background:var(--yellow-dim);color:var(--yellow-t);border-radius:3px;paddin
 .btn-primary:hover:not(:disabled){opacity:.88}
 .btn-red{background:var(--red-dim);color:var(--red-t);border-color:var(--red-b)}
 .btn-red:hover:not(:disabled){background:var(--red-b)}
+.btn-purple{background:var(--purple-dim);color:var(--purple-t);border-color:var(--purple-b)}
+.btn-purple:hover:not(:disabled){background:var(--purple-b)}
+.btn-yellow{background:var(--yellow-dim);color:var(--yellow-t);border-color:var(--yellow-b)}
+.btn-yellow:hover:not(:disabled){background:var(--yellow-b)}
 .btn-ghost{background:none;color:var(--text2);border-color:var(--border2)}
 .btn-ghost:hover:not(:disabled){background:var(--surface2);color:var(--text)}
 .btn-ghost-red{color:var(--red-t)}
@@ -100,18 +108,21 @@ mark{background:var(--yellow-dim);color:var(--yellow-t);border-radius:3px;paddin
 .link-btn{background:none;border:none;color:var(--blue);font-size:13px;padding:4px 0}
 .link-btn:hover{text-decoration:underline}
 
-/* ─── inputs ──────────────────────────────────────────── */
-input,textarea{width:100%;padding:9px 13px;background:var(--surface);color:var(--text);
+/* ─── inputs / select ─────────────────────────────────── */
+input,textarea,select{width:100%;padding:9px 13px;background:var(--surface);color:var(--text);
   border:1px solid var(--border2);border-radius:var(--r);font-size:14px;font-family:var(--sans);
   outline:none;transition:border .12s}
-input:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
 input::placeholder,textarea::placeholder{color:var(--text3)}
+input[type=range]{padding:4px 0;border:none;box-shadow:none;cursor:pointer;accent-color:var(--blue)}
+input[type=range]:focus{box-shadow:none}
 
 /* ─── alerts / badges ─────────────────────────────────── */
 .alert{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:16px;
   display:flex;align-items:flex-start;gap:8px;border:1px solid}
 .alert-err{background:var(--red-dim);color:var(--red-t);border-color:var(--red-b)}
 .alert-ok{background:var(--green-dim);color:var(--green-t);border-color:var(--green-b)}
+.alert-info{background:var(--blue-dim);color:var(--blue-t);border-color:var(--blue-b)}
 
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;
   padding:2px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
@@ -119,6 +130,7 @@ input::placeholder,textarea::placeholder{color:var(--text3)}
 .chip-green{background:var(--green-dim);color:var(--green-t);border-color:var(--green-b)}
 .chip-blue{background:var(--blue-dim);color:var(--blue-t);border-color:var(--blue-b)}
 .chip-yellow{background:var(--yellow-dim);color:var(--yellow-t);border-color:var(--yellow-b)}
+.chip-purple{background:var(--purple-dim);color:var(--purple-t);border-color:var(--purple-b)}
 
 /* ─── loading / empty ─────────────────────────────────── */
 .spinner{width:20px;height:20px;border:2px solid var(--border2);
@@ -150,6 +162,7 @@ input::placeholder,textarea::placeholder{color:var(--text3)}
 .opt{color:var(--text3);font-weight:400}
 .form-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .form-hint{font-size:12px;color:var(--text3);margin-top:10px;line-height:1.55}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px}
@@ -176,13 +189,18 @@ input::placeholder,textarea::placeholder{color:var(--text3)}
 .rec-bar-left{min-width:0;flex:1}
 .rec-title{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rec-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
-.rec-bar-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.rec-bar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .meter{display:flex;align-items:center;gap:2px}
 .mbar{width:3px;border-radius:3px;background:var(--border2);transition:background .07s}
 .mbar.on{background:var(--red)}
 .rec-time{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--red);min-width:64px;text-align:right}
+.rec-time.paused{color:var(--yellow)}
 .stop-btn{display:flex;align-items:center;gap:7px}
 .stop-sq{width:11px;height:11px;background:var(--red);border-radius:2px;flex-shrink:0}
+.rec-stats{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text2);
+  padding:8px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+.rec-stat{display:flex;align-items:center;gap:5px}
+.rec-stat strong{color:var(--text);font-weight:600}
 
 /* ─── TRANSCRIPT AREA ─────────────────────────────────── */
 .transcript-scroll{flex:1;overflow-y:auto;padding:24px 20px;max-width:var(--mw);
@@ -192,20 +210,38 @@ input::placeholder,textarea::placeholder{color:var(--text3)}
   justify-content:center;gap:16px;padding:80px 20px;text-align:center}
 .t-empty-icon{width:56px;height:56px;border-radius:50%;border:2px solid var(--red-b);
   display:flex;align-items:center;justify-content:center;animation:pulse 2.2s ease-in-out infinite}
+.t-empty-icon.paused{border-color:var(--yellow-b);animation:none}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.14);opacity:.3}}
 .t-empty-title{font-size:16px;font-weight:600;color:var(--text)}
 .t-empty-sub{font-size:13px;color:var(--text2);max-width:340px;line-height:1.6}
 
-/* Individual transcript line — this is the HERO */
 .t-line{display:flex;gap:16px;margin-bottom:22px;animation:fadein .22s ease}
 @keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .t-ts{font-family:var(--mono);font-size:11px;color:var(--text3);padding-top:4px;
   min-width:72px;flex-shrink:0;line-height:1}
 .t-body{flex:1}
 .t-speaker{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.03em;
-  text-transform:uppercase;margin-bottom:5px}
+  text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:6px}
 .t-text{font-size:17px;line-height:1.65;color:var(--text);font-weight:400}
 .t-line.interim .t-text{color:var(--text3);font-style:italic;font-size:16px}
+.conf-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block}
+.conf-dot.high{background:var(--green)}
+.conf-dot.med{background:var(--yellow)}
+.conf-dot.low{background:var(--red)}
+
+/* ─── AI PANEL ────────────────────────────────────────── */
+.ai-panel{background:var(--purple-dim);border:1px solid var(--purple-b);
+  border-radius:var(--r-lg);padding:18px;margin-bottom:22px}
+.ai-panel-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.ai-panel-title{font-size:14px;font-weight:600;color:var(--purple-t);display:flex;align-items:center;gap:7px}
+.ai-summary{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px}
+.ai-lists{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ai-list-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.ai-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.ai-list li{font-size:13px;line-height:1.5;color:var(--text);display:flex;gap:7px;align-items:flex-start}
+.ai-list li::before{content:'→';color:var(--purple-t);flex-shrink:0;font-weight:600;font-size:11px;margin-top:2px}
+.ai-loading{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--purple-t);padding:8px 0}
+.sentiment-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px}
 
 /* ─── MEETINGS LIST ───────────────────────────────────── */
 .page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
@@ -261,10 +297,141 @@ audio{width:100%;height:38px;border-radius:var(--r)}
 .fields{display:flex;flex-direction:column;gap:14px;margin-bottom:16px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field-label{font-size:13px;font-weight:500}
+.field-hint{font-size:11px;color:var(--text3);line-height:1.5;margin-top:2px}
 .settings-btns{display:flex;gap:8px;flex-wrap:wrap}
 .tech-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .tech-tag{font-size:11px;background:var(--surface2);border:1px solid var(--border);
   border-radius:999px;padding:2px 10px;color:var(--text2)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--surface2);border-radius:var(--r);margin-bottom:10px}
+.toggle-row label{font-size:13px;font-weight:500}
+.toggle-row small{font-size:11px;color:var(--text3);display:block;margin-top:2px}
+input[type=checkbox]{width:auto;cursor:pointer;accent-color:var(--blue)}
+.conf-preview{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-top:6px}
+.conf-preview span{font-family:var(--mono);color:var(--text);font-weight:600}
+
+/* ─── EDITABLE TRANSCRIPT LINES ──────────────────────── */
+.t-text-wrap{position:relative;cursor:text}
+.t-text-wrap:hover::after{content:'✎';position:absolute;right:-20px;top:50%;transform:translateY(-50%);
+  font-size:12px;color:var(--text3);opacity:.6}
+.t-text-edit{width:100%;font-size:17px;line-height:1.65;color:var(--text);font-family:var(--sans);
+  background:var(--surface2);border:1px solid var(--blue);border-radius:6px;
+  padding:6px 10px;resize:none;outline:none;min-height:44px}
+.t-text-edit:focus{box-shadow:0 0 0 3px var(--blue-dim)}
+.t-edit-row{display:flex;gap:6px;margin-top:5px}
+.t-line:hover .t-speaker-btn{opacity:1}
+.t-line:hover .t-copy-btn{opacity:1}
+.t-line:hover .t-star-btn{opacity:1}
+.t-speaker-btn,.t-copy-btn,.t-star-btn{opacity:0;background:none;border:none;font-size:11px;
+  color:var(--text3);padding:1px 4px;border-radius:3px;cursor:pointer;transition:opacity .12s,color .12s}
+.t-speaker-btn:hover{color:var(--blue)}
+.t-copy-btn:hover{color:var(--green-t)}
+.t-star-btn:hover{color:var(--yellow)}
+.t-star-btn.starred{opacity:1;color:var(--yellow)}
+.speaker-edit-wrap{display:flex;align-items:center;gap:5px}
+.speaker-edit-inp{width:130px;padding:2px 8px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.03em;font-family:var(--sans);border-radius:4px}
+
+/* ─── SPEAKER COLORS ──────────────────────────────────── */
+.spk-0{color:#2563eb} .spk-1{color:#16a34a} .spk-2{color:#7c3aed}
+.spk-3{color:#ca8a04} .spk-4{color:#dc2626} .spk-5{color:#0891b2}
+
+/* ─── STATS PANEL ─────────────────────────────────────── */
+.stats-panel{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:16px 20px;margin-bottom:22px}
+.stats-panel-title{font-size:12px;font-weight:600;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.stats-panel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-mini{display:flex;flex-direction:column;gap:3px}
+.stat-mini-val{font-size:20px;font-weight:700;letter-spacing:-.03em;color:var(--text)}
+.stat-mini-lbl{font-size:11px;color:var(--text2)}
+
+/* ─── WORD FREQ CHART ─────────────────────────────────── */
+.wf-panel{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:16px 20px;margin-bottom:22px}
+.wf-title{font-size:12px;font-weight:600;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.wf-list{display:flex;flex-direction:column;gap:6px}
+.wf-row{display:flex;align-items:center;gap:10px}
+.wf-word{font-size:12px;font-weight:500;color:var(--text);min-width:90px;flex-shrink:0}
+.wf-bar-wrap{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.wf-bar{height:100%;background:var(--blue-b);border-radius:4px;transition:width .4s ease}
+.wf-count{font-size:11px;font-family:var(--mono);color:var(--text3);min-width:24px;text-align:right}
+
+/* ─── NOTES PANEL ─────────────────────────────────────── */
+.notes-panel{border-top:1px solid var(--border);padding:14px 20px;background:var(--surface);
+  flex-shrink:0;display:flex;gap:10px;align-items:flex-start}
+.notes-inp{flex:1;padding:7px 11px;font-size:13px;border:1px solid var(--border2);
+  border-radius:var(--r);background:var(--surface2);color:var(--text);font-family:var(--sans);
+  resize:none;height:38px;outline:none;transition:border .12s,height .15s}
+.notes-inp:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-dim);height:72px}
+.notes-inp::placeholder{color:var(--text3)}
+.notes-list{padding:0 20px 10px;max-width:var(--mw);margin:0 auto;width:100%}
+.note-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;
+  padding:7px 0;border-bottom:1px solid var(--border);color:var(--text)}
+.note-ts{font-family:var(--mono);font-size:11px;color:var(--text3);flex-shrink:0;padding-top:2px}
+.note-text{flex:1;line-height:1.5}
+.note-del{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;
+  padding:0 2px;opacity:0}
+.note-item:hover .note-del{opacity:1}
+.note-del:hover{color:var(--red-t)}
+
+/* ─── EXPORT DROPDOWN ─────────────────────────────────── */
+.dropdown{position:relative;display:inline-block}
+.dropdown-menu{position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);
+  border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:0 8px 24px rgba(0,0,0,.12);
+  min-width:160px;z-index:50;overflow:hidden;animation:fadein .12s ease}
+.dropdown-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  padding:9px 14px;font-size:13px;background:none;border:none;color:var(--text);
+  cursor:pointer;transition:background .1s}
+.dropdown-item:hover{background:var(--surface2)}
+.dropdown-item:disabled{opacity:.4;cursor:default}
+.dropdown-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* ─── INLINE TITLE EDIT ───────────────────────────────── */
+.detail-title-wrap{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px}
+.detail-title{font-size:24px;font-weight:700;letter-spacing:-.03em;line-height:1.25;flex:1}
+.title-edit-btn{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;
+  padding:4px;opacity:0;transition:opacity .12s;margin-top:6px}
+.detail-title-wrap:hover .title-edit-btn{opacity:1}
+.title-edit-btn:hover{color:var(--blue)}
+.title-edit-inp{font-size:24px;font-weight:700;letter-spacing:-.03em;line-height:1.25;
+  width:100%;background:var(--surface2);border:1px solid var(--blue);border-radius:var(--r);
+  padding:4px 10px;font-family:var(--sans);color:var(--text);outline:none}
+.title-edit-inp:focus{box-shadow:0 0 0 3px var(--blue-dim)}
+
+/* ─── TAGS ────────────────────────────────────────────── */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;
+  padding:2px 9px;border-radius:999px;background:var(--surface2);
+  border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .1s}
+.tag:hover{border-color:var(--border2);color:var(--text)}
+.tag-add{font-style:normal;color:var(--text3)}
+.tag-x{font-size:13px;line-height:1;color:var(--text3);margin-left:1px}
+.tag-x:hover{color:var(--red-t)}
+
+/* ─── STARRED LINES ───────────────────────────────────── */
+.t-line.starred{background:var(--yellow-dim);border-radius:var(--r);padding:6px 10px;margin-left:-10px}
+
+/* ─── BOOKMARKS SIDEBAR (recording) ──────────────────── */
+.kbd-hud{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);
+  padding:9px 16px;display:flex;align-items:center;gap:12px;font-size:11px;
+  color:var(--text2);box-shadow:var(--shadow);z-index:100;pointer-events:none;
+  animation:fadein .2s ease}
+.kbd{display:inline-flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:4px;
+  padding:2px 6px;font-family:var(--mono);font-size:10px;color:var(--text);min-width:22px}
+
+/* ─── SCROLL LOCK INDICATOR ───────────────────────────── */
+.scroll-lock-btn{position:sticky;bottom:16px;left:50%;transform:translateX(-50%);
+  display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:12px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:999px;
+  color:var(--text2);box-shadow:var(--shadow);cursor:pointer;transition:all .12s;margin-top:12px}
+.scroll-lock-btn:hover{background:var(--surface2);color:var(--text)}
+.scroll-lock-btn.locked{background:var(--blue-dim);border-color:var(--blue-b);color:var(--blue-t)}
+
+/* ─── WAVEFORM BARS ───────────────────────────────────── */
+.mbar{transition:height .07s ease,background .07s}
 
 /* ─── scrollbar ───────────────────────────────────────── */
 ::-webkit-scrollbar{width:5px}
@@ -276,12 +443,19 @@ audio{width:100%;height:38px;border-radius:var(--r)}
 @media(max-width:580px){
   .stats-grid{grid-template-columns:repeat(3,1fr);gap:8px}
   .stat-val{font-size:20px}
-  .rec-bar{padding:10px 14px;flex-wrap:wrap}
+  .rec-bar{padding:10px 14px;flex-wrap:wrap;gap:8px}
   .meter{display:none}
   .t-text{font-size:16px}
   .detail-title{font-size:20px}
   .wrap{padding:18px 14px}
   .rec-time{font-size:17px}
+  .ai-lists{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .stats-panel-grid{grid-template-columns:repeat(2,1fr)}
+  .wf-panel{display:none}
+  .detail-acts{gap:4px}
+  .btn-sm{padding:5px 9px;font-size:12px}
+  .rec-bar-right{gap:6px}
 }
 </style>
 </head>
@@ -290,25 +464,173 @@ audio{width:100%;height:38px;border-radius:var(--r)}
 
 <script>
 // ════════════════════════════════════════════════════════
-//  VoiceLog — single-file app for GitHub Pages
+//  VoiceLog v2 — Enhanced Meeting Transcriber
+//  GitHub Pages compatible — single file, zero build tools
 // ════════════════════════════════════════════════════════
+
+/* ─── Speaker color system ──────────────────────────────*/
+// Assign a consistent color class to each unique speaker name
+const _speakerColorCache = {};
+let _speakerColorIdx = 0;
+function speakerColorClass(name) {
+  if (!_speakerColorCache[name]) {
+    _speakerColorCache[name] = 'spk-' + (_speakerColorIdx++ % 6);
+  }
+  return _speakerColorCache[name];
+}
+function resetSpeakerColors() {
+  Object.keys(_speakerColorCache).forEach(k => delete _speakerColorCache[k]);
+  _speakerColorIdx = 0;
+}
+
+/* ─── Word frequency analysis ───────────────────────────*/
+const STOP_WORDS = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with',
+  'by','from','is','was','are','were','be','been','have','has','had','do','did','will','would',
+  'could','should','may','might','i','you','he','she','it','we','they','this','that','these',
+  'those','my','your','his','her','its','our','their','what','which','who','when','where','how',
+  'so','if','then','than','as','up','out','about','into','through','after','before','just','also',
+  'not','no','yes','ok','yeah','um','uh','like','know','going','get','got','need','want','think',
+  'said','say','says','can','all','more','some','there','here','its','very','well','right','now',
+  'because','really','actually','basically','literally','kind']);
+
+function topWords(transcript, n = 10) {
+  const freq = {};
+  (transcript || []).forEach(l => {
+    (l.text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [])
+      .filter(w => !STOP_WORDS.has(w))
+      .forEach(w => { freq[w] = (freq[w]||0) + 1; });
+  });
+  return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+
+/* ─── Tags ──────────────────────────────────────────────*/
+const TAGS_KEY = 'voicelog_tags_v1';
+function getTags(id) {
+  try { const t = JSON.parse(localStorage.getItem(TAGS_KEY)||'{}'); return t[String(id)] || []; } catch { return []; }
+}
+function saveTags(id, tags) {
+  try { const t = JSON.parse(localStorage.getItem(TAGS_KEY)||'{}'); t[String(id)] = tags; localStorage.setItem(TAGS_KEY, JSON.stringify(t)); } catch {}
+}
+function addTag(id, tag) {
+  const t = getTags(id); if (!tag || t.includes(tag)) return;
+  saveTags(id, [...t, tag]); render();
+}
+function removeTag(id, tag) {
+  saveTags(id, getTags(id).filter(t=>t!==tag)); render();
+}
+function promptTag(id) {
+  const tag = prompt('Add tag (e.g. "weekly sync", "interview", "1:1"):');
+  if (tag?.trim()) addTag(id, tag.trim().toLowerCase());
+}
+
+/* ─── Stars / bookmarks ─────────────────────────────────*/
+const STARS_KEY = 'voicelog_stars_v1';
+function getStars(meetingId) {
+  try { const s = JSON.parse(localStorage.getItem(STARS_KEY)||'{}'); return new Set(s[String(meetingId)] || []); } catch { return new Set(); }
+}
+function toggleStar(meetingId, lineIdx) {
+  try {
+    const s = JSON.parse(localStorage.getItem(STARS_KEY)||'{}');
+    const key = String(meetingId);
+    const set = new Set(s[key] || []);
+    set.has(lineIdx) ? set.delete(lineIdx) : set.add(lineIdx);
+    s[key] = [...set]; localStorage.setItem(STARS_KEY, JSON.stringify(s));
+  } catch {}
+  // Re-render just the star button
+  const btn = document.getElementById(`star-${lineIdx}`);
+  if (btn) {
+    const starred = getStars(meetingId).has(lineIdx);
+    btn.classList.toggle('starred', starred);
+    btn.title = starred ? 'Unstar line' : 'Star line';
+    btn.textContent = starred ? '★' : '☆';
+    const row = document.getElementById(`tl-detail-${lineIdx}`);
+    if (row) row.classList.toggle('starred', starred);
+  }
+}
+
+/* ─── Notes during recording ────────────────────────────*/
+// Notes are stored in S.notes[] during recording and saved with the meeting
+// Format: {id, text, ts, recTime}
+const NOTES_KEY = 'voicelog_notes_v1';
+function getMeetingNotes(id) {
+  try { const n = JSON.parse(localStorage.getItem(NOTES_KEY)||'{}'); return n[String(id)] || []; } catch { return []; }
+}
+function saveMeetingNotes(id, notes) {
+  try { const n = JSON.parse(localStorage.getItem(NOTES_KEY)||'{}'); n[String(id)] = notes; localStorage.setItem(NOTES_KEY, JSON.stringify(n)); } catch {}
+}
+function addNote(text) {
+  if (!text?.trim()) return;
+  const note = {id: Date.now(), text: text.trim(), ts: fmtTs(), recTime: fmt(S.recTime)};
+  S.notes = S.notes || [];
+  S.notes.push(note);
+  // Render into the notes list
+  const list = el('notes-list-area'); if (!list) return;
+  const div = document.createElement('div');
+  div.className = 'note-item'; div.id = 'note-'+note.id;
+  div.innerHTML = `<span class="note-ts">${esc(note.recTime)}</span>
+    <span class="note-text">${esc(note.text)}</span>
+    <button class="note-del" onclick="deleteNote(${note.id})" title="Remove">×</button>`;
+  list.appendChild(div);
+}
+function deleteNote(id) {
+  S.notes = (S.notes||[]).filter(n=>n.id!==id);
+  const el2 = document.getElementById('note-'+id); if (el2) el2.remove();
+}
+
+/* ─── Export dropdown state ─────────────────────────────*/
+let _exportMenuOpen = false;
+function toggleExportMenu(e) {
+  e?.stopPropagation();
+  _exportMenuOpen = !_exportMenuOpen;
+  const menu = el('export-menu');
+  if (menu) { menu.style.display = _exportMenuOpen ? 'block' : 'none'; }
+}
+document.addEventListener('click', () => {
+  if (_exportMenuOpen) { _exportMenuOpen = false; const m = el('export-menu'); if (m) m.style.display='none'; }
+});
+
+
+const CFG = {
+  get lang()     { try { return localStorage.getItem('voicelog_lang') || 'en-US'; } catch { return 'en-US'; } },
+  set lang(v)    { localStorage.setItem('voicelog_lang', v); },
+  get conf()     { try { return parseFloat(localStorage.getItem('voicelog_conf') || '0'); } catch { return 0; } },
+  set conf(v)    { localStorage.setItem('voicelog_conf', String(v)); },
+  get aiKey()    { try { return localStorage.getItem('voicelog_ai_key') || ''; } catch { return ''; } },
+  set aiKey(v)   { localStorage.setItem('voicelog_ai_key', v); },
+  get autoSum()  { try { return localStorage.getItem('voicelog_auto_sum') !== 'false'; } catch { return true; } },
+  set autoSum(v) { localStorage.setItem('voicelog_auto_sum', String(v)); },
+};
+
+const SUMMARIES_KEY = 'voicelog_summaries_v1';
+function getSummary(id) {
+  try { const s = JSON.parse(localStorage.getItem(SUMMARIES_KEY)||'{}'); return s[String(id)]||null; } catch { return null; }
+}
+function saveSummaryLocal(id, data) {
+  try { const s=JSON.parse(localStorage.getItem(SUMMARIES_KEY)||'{}'); s[String(id)]=data; localStorage.setItem(SUMMARIES_KEY, JSON.stringify(s)); } catch {}
+}
+function deleteSummaryLocal(id) {
+  try { const s=JSON.parse(localStorage.getItem(SUMMARIES_KEY)||'{}'); delete s[String(id)]; localStorage.setItem(SUMMARIES_KEY, JSON.stringify(s)); } catch {}
+}
 
 /* ─── State ─────────────────────────────────────────────*/
 const S = {
-  tab: 'home',          // home | recording | meetings | detail | settings
+  tab: 'home',
   meetings: [],
   selected: null,
   loading: true,
   saving: false,
   isRec: false,
+  isPaused: false,
   recTime: 0,
-  lines: [],            // live transcript lines
+  lines: [],
   interim: '',
   audioLevel: 0,
   sources: {mic:false, sys:false},
   meetTitle: '',
-  mode: 'local',        // 'local' | 'cloud'
+  mode: 'local',
   error: '',
+  aiWorking: false,     // AI generation in progress
+  aiError: '',
   // recorder internals
   _recognition: null,
   _recorder: null,
@@ -316,10 +638,21 @@ const S = {
   _timer: null,
   _raf: null,
   _actx: null,
+  _analyser: null,
+  _analyserBuf: null,
+  _timerStart: 0,
+  _timerOffset: 0,
   _linesSnap: [],
   _timeSnap: 0,
   _titleSnap: '',
   _srcSnap: {mic:false, sys:false},
+  // Speaker diarization
+  _speakerIdx: 0,
+  _lastSpeechTs: 0,
+  _speakerGap: 4000,   // ms silence before assuming new speaker
+  _speakerNames: ['You','Speaker 2','Speaker 3','Speaker 4'],
+  // Live notes
+  notes: [],
 };
 
 /* ─── Helpers ───────────────────────────────────────────*/
@@ -347,6 +680,91 @@ const fmtTs = () => new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const el = id => document.getElementById(id);
 const hasSpeech = !!(window.SpeechRecognition||window.webkitSpeechRecognition);
+
+/* ─── Text post-processor ───────────────────────────────
+ * Fixes common speech-to-text artifacts before storing.
+ * Runs on every final result — zero latency, zero cost.
+ * ─────────────────────────────────────────────────────── */
+function postProcess(text) {
+  if (!text) return text;
+  // Capitalize first character
+  text = text.charAt(0).toUpperCase() + text.slice(1);
+  // Fix lone "i" → "I"
+  text = text.replace(/\bi\b/g, 'I');
+  // Fix common contractions that arrive lowercase from STT
+  text = text.replace(/\bi'm\b/gi, "I'm");
+  text = text.replace(/\bi've\b/gi, "I've");
+  text = text.replace(/\bi'll\b/gi, "I'll");
+  text = text.replace(/\bi'd\b/gi, "I'd");
+  text = text.replace(/\bi'd\b/gi, "I'd");
+  text = text.replace(/\bdon't\b/gi, "don't");
+  text = text.replace(/\bdoesn't\b/gi, "doesn't");
+  text = text.replace(/\bwon't\b/gi, "won't");
+  text = text.replace(/\bcan't\b/gi, "can't");
+  // Remove obvious repetition artifacts (word word word → word)
+  text = text.replace(/\b(\w{3,})( \1){2,}/gi, '$1');
+  // Add trailing period if text ends with a word char
+  if (text && /\w$/.test(text) && text.length > 15) text += '.';
+  return text.trim();
+}
+
+/* ─── AI helpers ────────────────────────────────────────*/
+async function callAI(prompt, maxTokens = 600) {
+  const key = CFG.aiKey;
+  if (!key) throw new Error('No API key. Add your Anthropic key in Settings.');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }],
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({error:{message:`HTTP ${res.status}`}}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  const text = data.content?.find(c => c.type === 'text')?.text || '';
+  return text.replace(/```json|```/g, '').trim();
+}
+
+async function generateAISummary(meeting) {
+  const lines = meeting.transcript || [];
+  if (!lines.length) return null;
+  const transcript = lines.map(l => `[${l.ts||''}] ${l.speaker}: ${l.text}`).join('\n');
+  const prompt = `Analyze this meeting transcript. Respond ONLY with valid JSON — no preamble, no markdown.
+
+Transcript (${lines.length} lines, ${meeting.duration}s, ${meeting.wordCount} words):
+${transcript}
+
+JSON schema:
+{"summary":"2-3 sentence overview of what was discussed","keyPoints":["concise point"],"actionItems":["concrete next step"],"sentiment":"positive|neutral|mixed|tense"}
+
+Rules: keyPoints max 5 items, actionItems max 5 items. If nothing to list, use empty array.`;
+  const raw = await callAI(prompt, 700);
+  return JSON.parse(raw);
+}
+
+async function cleanTranscriptWithAI(meeting) {
+  const lines = meeting.transcript || [];
+  if (!lines.length) return null;
+  const prompt = `Fix this speech-to-text transcript. For each line: correct misheard words, fix grammar, add punctuation, remove filler words (um, uh, like, you know). Keep original meaning and speaker.
+
+Lines (return ALL of them, same count):
+${JSON.stringify(lines.map(l => ({id: l.id, text: l.text})))}
+
+Respond ONLY with a JSON array: [{"id":"...","text":"corrected text"}, ...]
+No preamble, no markdown.`;
+  const raw = await callAI(prompt, lines.length * 60 + 200);
+  return JSON.parse(raw);
+}
 
 /* ─── Local Storage DB ──────────────────────────────────*/
 const LOCAL_KEY = 'voicelog_v1';
@@ -383,7 +801,7 @@ async function dbLoad() {
       S.meetings = rows.map(r=>({
         id:r.id, title:r.title, date:new Date(r.date), duration:r.duration,
         wordCount:r.word_count, hasMic:r.has_mic, hasSystem:r.has_system, audioUrl:r.audio_url,
-        transcript:(map[r.id]||[]).map(l=>({id:l.id,text:l.text,speaker:l.speaker,ts:l.ts}))
+        transcript:(map[r.id]||[]).map(l=>({id:l.id,text:l.text,speaker:l.speaker,ts:l.ts,confidence:l.confidence||0}))
       }));
       S.mode='cloud';
     } else {
@@ -413,7 +831,7 @@ async function dbSave(meeting, audioBlob) {
     }).select().single();
     if(me) throw me;
     if(meeting.transcript?.length) {
-      const lrows = meeting.transcript.map((l,i)=>({meeting_id:row.id,text:l.text,speaker:l.speaker,ts:l.ts,line_order:i}));
+      const lrows = meeting.transcript.map((l,i)=>({meeting_id:row.id,text:l.text,speaker:l.speaker,ts:l.ts,line_order:i,confidence:l.confidence||0}));
       await sb.from('transcript_lines').insert(lrows);
     }
     return {...meeting, id:row.id, audioUrl};
@@ -433,6 +851,7 @@ async function dbDelete(id) {
   } else {
     localSave(localLoad().filter(m=>String(m.id)!==String(id)));
   }
+  deleteSummaryLocal(id);
 }
 
 async function dbSearch(q) {
@@ -451,27 +870,23 @@ async function dbSearch(q) {
   );
 }
 
-/* ─── Continuous Speech Recognizer ──────────────────────
- *
- * WHY breaks happen with plain SpeechRecognition:
- *   1. Chrome auto-stops after ~60 s of any session
- *   2. Chrome stops after ~5-8 s of silence (no-speech)
- *   3. Reusing the same stopped instance throws an error
- *   4. The gap between onend → start() loses words
- *
- * FIX — three-layer defence:
- *   A. Fresh instance every restart (Chrome rejects re-used ones)
- *   B. Immediate restart inside onend (< 50 ms gap)
- *   C. Watchdog timer: if the instance has been dead for
- *      > 1.5 s without us intending to stop, force-restart
- * ────────────────────────────────────────────────────── */
+/* ─── Enhanced Continuous Recognizer ────────────────────
+ *  v2 improvements over v1:
+ *  · maxAlternatives: 3 — picks highest-confidence alternative
+ *  · Configurable confidence threshold — skips garbled results
+ *  · Language param — supports 10+ languages
+ *  · Pause/resume without losing the instance lifecycle
+ *  · Same three-layer restart defence as v1
+ * ─────────────────────────────────────────────────────── */
 const Recognizer = (() => {
-  let _alive      = false;   // true while we want recognition running
-  let _running    = false;   // true between onstart and onend
-  let _restarting = false;   // debounce: one restart at a time
-  let _instance   = null;    // current SpeechRecognition object
-  let _watchdog   = null;    // interval handle
-  let _onResult   = null;    // callback(text, isFinal)
+  let _alive      = false;
+  let _running    = false;
+  let _restarting = false;
+  let _instance   = null;
+  let _watchdog   = null;
+  let _onResult   = null;
+  let _lang       = 'en-US';
+  let _confThresh = 0;
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -479,87 +894,82 @@ const Recognizer = (() => {
     if (!_alive || _restarting) return;
     _restarting = true;
 
-    // Always create a brand-new instance — Chrome refuses to restart
-    // a stopped one and throws InvalidStateError
     const r = new SR();
     _instance = r;
-    r.continuous     = true;
-    r.interimResults = true;
-    r.lang           = 'en-US';
-    r.maxAlternatives = 1;
+    r.continuous      = true;
+    r.interimResults  = true;
+    r.lang            = _lang;
+    r.maxAlternatives = 3;   // ← v2: get 3 alternatives, pick best
 
-    r.onstart = () => {
-      _running    = true;
-      _restarting = false;
-    };
+    r.onstart = () => { _running = true; _restarting = false; };
 
     r.onresult = (e) => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
-          const text = e.results[i][0].transcript.trim();
-          if (text && _onResult) _onResult(text, true);
+          // Pick the alternative with the highest confidence
+          let best = e.results[i][0];
+          for (let j = 1; j < e.results[i].length; j++) {
+            if ((e.results[i][j].confidence || 0) > (best.confidence || 0)) {
+              best = e.results[i][j];
+            }
+          }
+          const conf = best.confidence || 0;
+          // Skip results below the threshold (unless threshold is 0 = off)
+          if (_confThresh > 0 && conf > 0 && conf < _confThresh) continue;
+          const text = postProcess(best.transcript.trim());
+          if (text && _onResult) _onResult(text, true, conf);
         } else {
           interim += e.results[i][0].transcript;
         }
       }
-      if (_onResult) _onResult(interim, false);
+      if (_onResult) _onResult(interim, false, 0);
     };
 
     r.onerror = (e) => {
-      // 'not-allowed' = user denied mic; stop permanently
       if (e.error === 'not-allowed') { _alive = false; return; }
-      // 'aborted' = we called abort() ourselves; onend will handle restart
-      // everything else (no-speech, network, audio-capture) → let onend restart
       _running = false;
     };
 
     r.onend = () => {
-      _running    = false;
-      _restarting = false;
+      _running = false; _restarting = false;
       if (!_alive) return;
-      // Restart immediately with a tiny delay so the browser
-      // can release its audio capture lock cleanly
       setTimeout(_spawn, 80);
     };
 
-    try {
-      r.start();
-    } catch (err) {
-      // start() can throw if called too quickly — back off and retry
-      _restarting = false;
-      _running    = false;
-      if (_alive) setTimeout(_spawn, 250);
-    }
+    try { r.start(); }
+    catch { _restarting = false; _running = false; if (_alive) setTimeout(_spawn, 250); }
+  }
+
+  function _startWatchdog() {
+    _watchdog = setInterval(() => {
+      if (_alive && !_running && !_restarting) { console.warn('[VoiceLog] stalled → restart'); _spawn(); }
+    }, 1500);
   }
 
   return {
-    start(onResult) {
+    start(onResult, lang, confThresh) {
       if (!SR) return false;
-      _alive      = true;
-      _running    = false;
-      _restarting = false;
-      _onResult   = onResult;
-      _spawn();
-
-      // Watchdog: poll every 1.5 s — if we're alive but not running
-      // and not already restarting, kick it back to life
-      _watchdog = setInterval(() => {
-        if (_alive && !_running && !_restarting) {
-          console.warn('[VoiceLog] Recognizer stalled — forcing restart');
-          _spawn();
-        }
-      }, 1500);
-
+      _alive = true; _running = false; _restarting = false;
+      _onResult = onResult; _lang = lang||'en-US'; _confThresh = confThresh||0;
+      _spawn(); _startWatchdog();
       return true;
     },
-
+    pause() {
+      _alive = false;
+      clearInterval(_watchdog); _watchdog = null;
+      try { _instance?.abort(); } catch {}
+    },
+    resume(onResult, lang, confThresh) {
+      _alive = true; _running = false; _restarting = false;
+      if (onResult) _onResult = onResult;
+      if (lang)     _lang = lang;
+      if (confThresh !== undefined) _confThresh = confThresh;
+      _spawn(); _startWatchdog();
+    },
     stop() {
-      _alive      = false;
-      _running    = false;
-      _restarting = false;
-      clearInterval(_watchdog);
-      _watchdog = null;
+      _alive = false; _running = false; _restarting = false;
+      clearInterval(_watchdog); _watchdog = null;
       try { _instance?.abort(); } catch {}
       _instance = null;
     },
@@ -567,98 +977,144 @@ const Recognizer = (() => {
 })();
 
 /* ─── Recording Engine ──────────────────────────────────*/
+function _handleRecResult(text, isFinal, confidence) {
+  if (isFinal) {
+    // ── Speaker diarization heuristic ──────────────────────
+    // If there's been a significant gap since the last speech
+    // event, rotate to the next speaker slot.
+    const now = Date.now();
+    if (S._lastSpeechTs && (now - S._lastSpeechTs) > S._speakerGap) {
+      S._speakerIdx = (S._speakerIdx + 1) % S._speakerNames.length;
+    }
+    S._lastSpeechTs = now;
+    const speaker = S._speakerNames[S._speakerIdx];
+
+    const line = {id: Date.now() + Math.random(), text, speaker, ts: fmtTs(), confidence};
+    S.lines.push(line);
+    S._linesSnap = [...S.lines];
+    appendTranscriptLine(line);
+    removeInterim();
+    // update live word counter
+    const wce = el('live-words');
+    if (wce) wce.textContent = S.lines.reduce((a,l)=>a+l.text.split(/\s+/).length,0);
+    const lce = el('live-lines');
+    if (lce) lce.textContent = S.lines.length;
+  } else {
+    S.interim = text;
+    updateInterim(text);
+  }
+}
+
+function _startMeter() {
+  if (!S._analyser) return;
+  const tick = () => {
+    S._analyser.getByteFrequencyData(S._analyserBuf);
+    S.audioLevel = Math.min(1, S._analyserBuf.reduce((a,v)=>a+v,0) / S._analyserBuf.length / 45);
+    document.querySelectorAll('.mbar').forEach((b,i) => b.classList.toggle('on', S.audioLevel * 16 > i));
+    S._raf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function _startTimer() {
+  S._timerStart = Date.now();
+  S._timer = setInterval(() => {
+    S.recTime = S._timerOffset + Math.floor((Date.now() - S._timerStart) / 1000);
+    S._timeSnap = S.recTime;
+    const te = el('rec-timer'); if (te) te.textContent = fmt(S.recTime);
+    const he = el('hdr-timer'); if (he) he.textContent = (S.isPaused ? '⏸ ' : 'REC ') + fmt(S.recTime);
+  }, 1000);
+}
+
 async function startRecording(title) {
   S.error = '';
 
-  // 1 ── Microphone (required)
   let micStream;
   try { micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
   catch { S.error = 'Microphone access denied — please allow it and try again.'; render(); return; }
 
-  // 2 ── System audio via screen-share (optional)
   const src = {mic:true, sys:false};
   let sysStream = null;
   try {
     sysStream = await navigator.mediaDevices.getDisplayMedia({
-      audio: {echoCancellation:false, noiseSuppression:false, sampleRate:44100},
-      video: {width:1, height:1, frameRate:1},
+      audio:{echoCancellation:false, noiseSuppression:false, sampleRate:44100},
+      video:{width:1,height:1,frameRate:1},
     });
     if (sysStream.getAudioTracks().length) src.sys = true;
   } catch {}
 
   S.sources = src; S._srcSnap = {...src};
 
-  // 3 ── Web Audio: mix streams + level meter
   try {
     const ctx = new AudioContext(); S._actx = ctx;
     const dest = ctx.createMediaStreamDestination();
     ctx.createMediaStreamSource(micStream).connect(dest);
-    if (sysStream?.getAudioTracks().length)
-      ctx.createMediaStreamSource(sysStream).connect(dest);
+    if (sysStream?.getAudioTracks().length) ctx.createMediaStreamSource(sysStream).connect(dest);
 
     const analyser = ctx.createAnalyser(); analyser.fftSize = 64;
     ctx.createMediaStreamSource(micStream).connect(analyser);
-    const buf = new Uint8Array(analyser.frequencyBinCount);
-    const tick = () => {
-      analyser.getByteFrequencyData(buf);
-      S.audioLevel = Math.min(1, buf.reduce((a,v)=>a+v,0) / buf.length / 45);
-      document.querySelectorAll('.mbar').forEach((b,i) =>
-        b.classList.toggle('on', S.audioLevel * 16 > i));
-      S._raf = requestAnimationFrame(tick);
-    };
-    tick();
+    S._analyser = analyser;
+    S._analyserBuf = new Uint8Array(analyser.frequencyBinCount);
+    _startMeter();
 
-    // 4 ── MediaRecorder on the mixed stream
     const rec = new MediaRecorder(dest.stream);
     S._recorder = rec; S._chunks = [];
     rec.ondataavailable = e => { if (e.data.size > 0) S._chunks.push(e.data); };
     rec.start(1000);
   } catch(e) { console.error('Audio setup:', e); }
 
-  // 5 ── Continuous speech recognition (never stops until we say so)
-  Recognizer.start((text, isFinal) => {
-    if (isFinal) {
-      const line = {id: Date.now() + Math.random(), text, speaker:'You', ts: fmtTs()};
-      S.lines.push(line);
-      S._linesSnap = [...S.lines];
-      appendTranscriptLine(line);
-      removeInterim();
-    } else {
-      S.interim = text;
-      updateInterim(text);
-    }
-  });
+  Recognizer.start(_handleRecResult, CFG.lang, CFG.conf);
 
-  // 6 ── Wall-clock timer
-  const t0 = Date.now();
-  S._timer = setInterval(() => {
-    S.recTime   = Math.floor((Date.now() - t0) / 1000);
-    S._timeSnap = S.recTime;
-    const te = el('rec-timer');  if (te) te.textContent = fmt(S.recTime);
-    const he = el('hdr-timer');  if (he) he.textContent = 'REC ' + fmt(S.recTime);
-  }, 1000);
+  S._timerOffset = 0;
+  _startTimer();
 
   S.meetTitle = title; S._titleSnap = title;
   S.lines = []; S._linesSnap = [];
-  S.interim = ''; S.recTime = 0; S.isRec = true;
+  S.interim = ''; S.recTime = 0; S.isRec = true; S.isPaused = false;
+  S._speakerIdx = 0; S._lastSpeechTs = 0;
   S.tab = 'recording'; render();
+}
+
+function pauseRecording() {
+  if (!S.isRec || S.isPaused) return;
+  S.isPaused = true;
+  Recognizer.pause();
+  clearInterval(S._timer); S._timer = null;
+  cancelAnimationFrame(S._raf); S._raf = null;
+  S._timerOffset = S.recTime;
+  if (S._recorder?.state === 'recording') S._recorder.pause();
+  // Update header pill
+  const hp = document.querySelector('.rec-pill');
+  if (hp) { hp.classList.add('paused'); hp.querySelector('.rec-dot')?.classList.add('paused'); }
+  const rt = el('rec-timer'); if (rt) rt.classList.add('paused');
+  const he = el('hdr-timer'); if (he) he.textContent = '⏸ ' + fmt(S.recTime);
+  render(); // re-render to show resume button
+}
+
+function resumeRecording() {
+  if (!S.isRec || !S.isPaused) return;
+  S.isPaused = false;
+  Recognizer.resume(_handleRecResult, CFG.lang, CFG.conf);
+  _startTimer();
+  _startMeter();
+  if (S._recorder?.state === 'paused') S._recorder.resume();
+  render();
 }
 
 function stopRecording() {
   return new Promise(resolve => {
-    // Stop the continuous recognizer cleanly
     Recognizer.stop();
-    clearInterval(S._timer);
-    cancelAnimationFrame(S._raf);
+    clearInterval(S._timer); S._timer = null;
+    cancelAnimationFrame(S._raf); S._raf = null;
     try { S._actx?.close(); } catch {}
 
     const lines     = [...S._linesSnap];
     const dur       = S._timeSnap;
     const title     = S._titleSnap;
     const src       = {...S._srcSnap};
-    const wordCount = lines.reduce((a,l) => a + l.text.split(' ').length, 0);
+    const wordCount = lines.reduce((a,l) => a + l.text.split(/\s+/).length, 0);
 
-    S.isRec = false; S.audioLevel = 0; S.interim = ''; S.recTime = 0;
+    S.isRec = false; S.isPaused = false; S.audioLevel = 0; S.interim = ''; S.recTime = 0;
 
     const done = blob => resolve({
       id: Date.now().toString(), title, date: new Date(), duration: dur,
@@ -676,39 +1132,55 @@ function stopRecording() {
 }
 
 /* ─── Live transcript DOM helpers ───────────────────────*/
+function confClass(c) {
+  if (!c || c === 0) return '';
+  if (c >= 0.85) return 'high';
+  if (c >= 0.65) return 'med';
+  return 'low';
+}
+
 function appendTranscriptLine(line) {
-  const area=el('transcript-area'); if(!area) return;
-  const empty=area.querySelector('.t-empty'); if(empty) empty.remove();
-  const div=document.createElement('div');
-  div.className='t-line'; div.id='tl-'+line.id;
-  div.innerHTML=`<span class="t-ts">${esc(line.ts)}</span>
+  const area = el('transcript-area'); if (!area) return;
+  const empty = area.querySelector('.t-empty'); if (empty) empty.remove();
+  const cc = confClass(line.confidence);
+  const dotHtml = cc ? `<span class="conf-dot ${cc}" title="Confidence: ${Math.round((line.confidence||0)*100)}%"></span>` : '';
+  const spkClass = speakerColorClass(line.speaker);
+  const div = document.createElement('div');
+  div.className = 't-line'; div.id = 'tl-'+line.id;
+  div.innerHTML = `<span class="t-ts">${esc(line.ts)}</span>
   <div class="t-body">
-    <div class="t-speaker">${esc(line.speaker)}</div>
+    <div class="t-speaker ${spkClass}">${esc(line.speaker)}${dotHtml}</div>
     <p class="t-text">${esc(line.text)}</p>
   </div>`;
   area.appendChild(div);
-  area.scrollTop=area.scrollHeight;
+  area.scrollTop = area.scrollHeight;
+  // Update live speaker label if it changed
+  const spkLbl = el('live-speaker');
+  if (spkLbl && spkLbl.textContent !== line.speaker) {
+    spkLbl.textContent = line.speaker;
+    spkLbl.className = spkClass;
+  }
 }
 
 function updateInterim(text) {
-  let itm=el('interim-line');
-  if(!text){ if(itm) itm.remove(); return; }
-  const area=el('transcript-area'); if(!area) return;
-  if(!itm){
-    itm=document.createElement('div');
-    itm.className='t-line interim'; itm.id='interim-line';
+  let itm = el('interim-line');
+  if (!text) { if (itm) itm.remove(); return; }
+  const area = el('transcript-area'); if (!area) return;
+  if (!itm) {
+    itm = document.createElement('div');
+    itm.className = 't-line interim'; itm.id = 'interim-line';
     area.appendChild(itm);
   }
-  itm.innerHTML=`<span class="t-ts">…</span>
+  itm.innerHTML = `<span class="t-ts">…</span>
   <div class="t-body">
     <div class="t-speaker">You</div>
     <p class="t-text">${esc(text)}</p>
   </div>`;
-  area.scrollTop=area.scrollHeight;
+  area.scrollTop = area.scrollHeight;
 }
 
 function removeInterim() {
-  const itm=el('interim-line'); if(itm) itm.remove();
+  const itm = el('interim-line'); if (itm) itm.remove();
 }
 
 /* ─── Render ────────────────────────────────────────────*/
@@ -731,7 +1203,10 @@ function buildApp() {
 
 function buildHeader() {
   const recBadge = S.isRec
-    ? `<div class="rec-pill"><span class="rec-dot"></span><span id="hdr-timer">REC ${fmt(S.recTime)}</span></div>`
+    ? `<div class="rec-pill${S.isPaused?' paused':''}">
+        <span class="rec-dot${S.isPaused?' paused':''}"></span>
+        <span id="hdr-timer">${S.isPaused?'⏸ ':'REC '}${fmt(S.recTime)}</span>
+       </div>`
     : '';
   const storageBadge = `<span class="storage-chip ${S.mode==='cloud'?'cloud':''}" title="${S.mode==='cloud'?'Synced to Supabase':'Stored locally in browser'}">
     ${S.mode==='cloud'?'☁ Cloud':'💾 Local'}</span>`;
@@ -761,7 +1236,7 @@ function buildHeader() {
 }
 
 function buildHome() {
-  const totalSecs = S.meetings.reduce((a,m)=>a+(m.duration||0),0);
+  const totalSecs  = S.meetings.reduce((a,m)=>a+(m.duration||0),0);
   const totalWords = S.meetings.reduce((a,m)=>a+(m.wordCount||0),0);
   const err = S.error ? `<div class="alert alert-err">⚠ ${esc(S.error)}</div>` : '';
   const cta = `
@@ -786,7 +1261,9 @@ function buildHome() {
     <div class="stat"><p class="stat-lbl">Words</p><p class="stat-val">${totalWords.toLocaleString()}</p></div>
   </div>
   <p class="section-lbl">Recent meetings</p>
-  ${S.meetings.slice(0,4).map(m=>`
+  ${S.meetings.slice(0,4).map(m=>{
+    const sum = getSummary(m.id);
+    return `
   <button class="meet-card" onclick="viewMeeting('${esc(m.id)}')">
     <div class="meet-card-top">
       <span class="meet-card-title">${esc(m.title)}</span>
@@ -797,9 +1274,11 @@ function buildHome() {
       <span>·</span>
       <span>${m.wordCount} words</span>
       ${m.hasSystem?'<span class="chip chip-green">System audio</span>':''}
+      ${sum?'<span class="chip chip-purple">✦ AI summary</span>':''}
     </div>
-    ${m.transcript?.[0] ? `<p class="meet-card-preview">"${esc(m.transcript[0].text)}"</p>` : ''}
-  </button>`).join('')}
+    ${sum ? `<p class="meet-card-preview">${esc(sum.summary)}</p>`
+           : m.transcript?.[0] ? `<p class="meet-card-preview">"${esc(m.transcript[0].text)}"</p>` : ''}
+  </button>`}).join('')}
   ${S.meetings.length>4 ? `<button class="link-btn" onclick="go('meetings')">View all ${S.meetings.length} meetings →</button>` : ''}
   ` : '';
 
@@ -814,50 +1293,90 @@ function buildHome() {
   return `<div class="view"><div class="wrap">${err}${cta}${loadingHtml}${statsHtml}${emptyHtml}</div></div>`;
 }
 
+const LANGS = [
+  {code:'en-US',label:'English (US)'},
+  {code:'en-GB',label:'English (UK)'},
+  {code:'en-AU',label:'English (AU)'},
+  {code:'es-ES',label:'Spanish'},
+  {code:'fr-FR',label:'French'},
+  {code:'de-DE',label:'German'},
+  {code:'ja-JP',label:'Japanese'},
+  {code:'zh-CN',label:'Chinese (Simplified)'},
+  {code:'pt-BR',label:'Portuguese (Brazil)'},
+  {code:'it-IT',label:'Italian'},
+  {code:'ko-KR',label:'Korean'},
+  {code:'ar-SA',label:'Arabic'},
+];
+
 function buildRecording() {
-  const bars = Array.from({length:16}).map((_,i)=>
-    `<span class="mbar ${S.audioLevel*16>i?'on':''}" style="height:${6+(i%6)*3}px"></span>`
-  ).join('');
+  // Dynamic animated bars
+  const bars = Array.from({length:20}).map((_,i)=>{
+    const on = !S.isPaused && S.audioLevel*20>i;
+    const h = S.isPaused ? 3 : Math.max(3, Math.round(6 + (i%5)*3.5 + S.audioLevel*14));
+    return `<span class="mbar ${on?'on':''}" style="height:${h}px"></span>`;
+  }).join('');
+
+  const liveWords = S.lines.reduce((a,l)=>a+l.text.split(/\s+/).length,0);
+  const avgConf = S.lines.filter(l=>l.confidence>0).length
+    ? Math.round(S.lines.filter(l=>l.confidence>0).reduce((a,l)=>a+l.confidence,0)
+        / S.lines.filter(l=>l.confidence>0).length * 100)
+    : null;
+  const curSpkName = S._speakerNames[S._speakerIdx] || 'You';
+  const curSpkClass = speakerColorClass(curSpkName);
 
   const srcChips = [
     S.sources.mic?'<span class="chip chip-red">🎙 Mic</span>':'',
     S.sources.sys?'<span class="chip chip-green">🖥 System audio</span>':'',
-    !hasSpeech?'<span class="chip chip-yellow">⚠ Use Chrome for live text</span>':'',
-  ].join('');
+    !hasSpeech?'<span class="chip chip-yellow">⚠ Chrome/Edge needed</span>':'',
+    S.isPaused?'<span class="chip chip-yellow">⏸ Paused</span>':'',
+  ].filter(Boolean).join('');
 
-  const linesHtml = S.lines.map(l=>`
+  const linesHtml = S.lines.map(l=>{
+    const cc = confClass(l.confidence);
+    const dot = cc ? `<span class="conf-dot ${cc}" title="Confidence: ${Math.round((l.confidence||0)*100)}%"></span>` : '';
+    const spkClass = speakerColorClass(l.speaker);
+    return `
   <div class="t-line" id="tl-${l.id}">
     <span class="t-ts">${esc(l.ts)}</span>
     <div class="t-body">
-      <div class="t-speaker">${esc(l.speaker)}</div>
+      <div class="t-speaker ${spkClass}">${esc(l.speaker)}${dot}</div>
       <p class="t-text">${esc(l.text)}</p>
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 
   const emptyMsg = S.lines.length===0 && !S.interim ? `
   <div class="t-empty">
-    <div class="t-empty-icon">
+    <div class="t-empty-icon${S.isPaused?' paused':''}">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
       </svg>
     </div>
-    <p class="t-empty-title">Listening…</p>
-    <p class="t-empty-sub">Start speaking — your words appear here in real time as the conversation unfolds.</p>
-    ${!hasSpeech?`<p class="t-empty-sub" style="color:var(--yellow-t)">Live transcription needs Chrome or Edge. Audio is still being recorded.</p>`:''}
+    <p class="t-empty-title">${S.isPaused ? 'Recording paused' : 'Listening…'}</p>
+    <p class="t-empty-sub">${S.isPaused ? 'Press <strong>Resume</strong> or <strong>Ctrl+Space</strong> to continue.' : 'Start speaking — your words appear here in real time.'}</p>
+    ${!hasSpeech&&!S.isPaused?`<p class="t-empty-sub" style="color:var(--yellow-t)">Live transcription requires Chrome or Edge.</p>`:''}
   </div>` : '';
 
-  const interimHtml = S.interim ? `
+  const interimHtml = S.interim && !S.isPaused ? `
   <div class="t-line interim" id="interim-line">
     <span class="t-ts">…</span>
     <div class="t-body">
-      <div class="t-speaker">You</div>
+      <div class="t-speaker ${curSpkClass}">${esc(curSpkName)}</div>
       <p class="t-text">${esc(S.interim)}</p>
     </div>
   </div>` : '';
 
-  const stopLabel = S.saving
-    ? `<span class="spinner-sm"></span> Saving…`
-    : `<span class="stop-sq"></span> Stop recording`;
+  const stopLabel = S.saving ? `<span class="spinner-sm"></span> Saving…` : `<span class="stop-sq"></span> Stop`;
+  const pauseBtn  = S.isPaused
+    ? `<button class="btn btn-yellow btn-sm" onclick="resumeRecording()" title="Ctrl+Space">▶ Resume</button>`
+    : `<button class="btn btn-ghost btn-sm" onclick="pauseRecording()" title="Ctrl+Space">⏸ Pause</button>`;
+
+  const notesItems = (S.notes||[]).map(n=>`
+    <div class="note-item" id="note-${n.id}">
+      <span class="note-ts">${esc(n.recTime)}</span>
+      <span class="note-text">${esc(n.text)}</span>
+      <button class="note-del" onclick="deleteNote(${n.id})" title="Remove">×</button>
+    </div>`).join('');
 
   return `
   <div class="rec-view">
@@ -868,14 +1387,30 @@ function buildRecording() {
       </div>
       <div class="rec-bar-right">
         <div class="meter">${bars}</div>
-        <div class="rec-time" id="rec-timer">${fmt(S.recTime)}</div>
-        <button class="btn btn-red stop-btn" onclick="handleStop()" ${S.saving?'disabled':''}>
+        <button class="btn btn-ghost btn-sm" onclick="bumpSpeaker()"
+          title="Mark new speaker — Ctrl+Shift+N" style="font-size:11px" ${S.isPaused?'disabled':''}>👤+</button>
+        <div class="rec-time${S.isPaused?' paused':''}" id="rec-timer">${fmt(S.recTime)}</div>
+        ${pauseBtn}
+        <button class="btn btn-red stop-btn btn-sm" onclick="handleStop()" ${S.saving?'disabled':''}>
           ${stopLabel}
         </button>
       </div>
     </div>
+    <div class="rec-stats">
+      <span class="rec-stat">Lines: <strong id="live-lines">${S.lines.length}</strong></span>
+      <span class="rec-stat">Words: <strong id="live-words">${liveWords}</strong></span>
+      ${avgConf!==null?`<span class="rec-stat">Confidence: <strong>${avgConf}%</strong></span>`:''}
+      <span class="rec-stat">Speaker: <strong id="live-speaker" class="${curSpkClass}">${esc(curSpkName)}</strong></span>
+    </div>
+    ${(S.notes||[]).length ? `<div class="notes-list" id="notes-list-area">${notesItems}</div>` : '<div id="notes-list-area" style="display:none"></div>'}
     <div class="transcript-scroll" id="transcript-area">
       ${emptyMsg}${linesHtml}${interimHtml}
+    </div>
+    <div class="notes-panel">
+      <textarea class="notes-inp" id="notes-inp"
+        placeholder="📝 Add a timestamped note… (Enter to save, Ctrl+M)"
+        rows="1" onkeydown="handleNoteKey(event)"></textarea>
+      <button class="btn btn-ghost btn-sm" onclick="submitNote()">+ Note</button>
     </div>
   </div>`;
 }
@@ -883,7 +1418,9 @@ function buildRecording() {
 function buildMeetings() {
   const listHtml = S.meetings.length===0
     ? `<div class="empty"><p>No meetings recorded yet.</p></div>`
-    : S.meetings.map(m=>`
+    : S.meetings.map(m=>{
+        const sum = getSummary(m.id);
+        return `
   <div class="meet-row">
     <button class="meet-row-main" onclick="viewMeeting('${esc(m.id)}')">
       <div class="meet-row-top">
@@ -896,13 +1433,15 @@ function buildMeetings() {
         <span>${m.wordCount} words</span>
         ${m.hasSystem?'<span class="chip chip-green">System</span>':''}
         ${m.audioUrl?'<span class="chip chip-blue">▶ Audio</span>':''}
+        ${sum?'<span class="chip chip-purple">✦ AI</span>':''}
       </div>
-      ${m.transcript?.[0]?`<p class="meet-row-preview">"${esc(m.transcript[0].text)}"</p>`:''}
+      ${sum ? `<p class="meet-row-preview">${esc(sum.summary)}</p>`
+             : m.transcript?.[0]?`<p class="meet-row-preview">"${esc(m.transcript[0].text)}"</p>`:''}
     </button>
     <div class="meet-row-del">
       <button class="icon-btn" onclick="confirmDel(event,'${esc(m.id)}')" title="Delete">🗑</button>
     </div>
-  </div>`).join('');
+  </div>`}).join('');
 
   return `
   <div class="view"><div class="wrap">
@@ -925,54 +1464,188 @@ function buildMeetings() {
 
 function buildDetail() {
   const m = S.selected;
-  if(!m) return '<div class="view"><div class="wrap"><p>Meeting not found.</p></div></div>';
+  if (!m) return '<div class="view"><div class="wrap"><p>Meeting not found.</p></div></div>';
+
+  const summary = getSummary(m.id);
+  const tags    = getTags(m.id);
+  const stars   = getStars(m.id);
+  const notes   = getMeetingNotes(m.id);
 
   const chips = [
-    fmtDate(m.date),
-    '·',
-    fmt(m.duration),
-    '·',
-    m.wordCount+' words',
-    m.hasMic    ? '<span class="chip chip-red">🎙 Mic</span>' : '',
+    fmtDate(m.date), '·', fmt(m.duration), '·', m.wordCount+' words',
+    m.hasMic    ? '<span class="chip chip-red">🎙 Mic</span>'         : '',
     m.hasSystem ? '<span class="chip chip-green">🖥 System audio</span>' : '',
   ].join(' ');
 
   const audio = m.audioUrl
     ? `<div class="audio-wrap"><p class="audio-lbl">Recording</p><audio controls src="${esc(m.audioUrl)}"></audio></div>` : '';
 
-  const search = m.transcript?.length>3
-    ? `<div class="detail-search">
-        <div class="search-wrap">
-          <span class="search-ico">🔍</span>
-          <input class="search-inp" type="search" placeholder="Find in transcript…"
-            oninput="highlightTranscript(this.value)" id="detail-search" />
-          <button class="search-x" onclick="clearDetailSearch()">×</button>
+  // ── AI panel ──────────────────────────────────────────
+  let aiPanelHtml = '';
+  if (S.aiWorking) {
+    aiPanelHtml = `<div class="ai-panel">
+      <div class="ai-loading"><div class="spinner-sm" style="border-color:var(--purple-b);border-top-color:var(--purple-t)"></div> Generating AI summary…</div>
+    </div>`;
+  } else if (S.aiError) {
+    aiPanelHtml = `<div class="alert alert-err" style="margin-bottom:22px">✗ AI error: ${esc(S.aiError)}
+      <button class="link-btn" style="margin-left:auto;color:var(--red-t)" onclick="doGenerateSummary()">Retry</button>
+    </div>`;
+  } else if (summary) {
+    const sentimentColor = {positive:'chip-green',neutral:'chip-blue',mixed:'chip-yellow',tense:'chip-red'}[summary.sentiment]||'chip-blue';
+    aiPanelHtml = `<div class="ai-panel">
+      <div class="ai-panel-hdr">
+        <span class="ai-panel-title">✦ AI Summary</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${summary.sentiment?`<span class="chip ${sentimentColor}">${summary.sentiment}</span>`:''}
+          <button class="btn btn-ghost btn-xs" onclick="doRegenerateSummary()">↻ Regenerate</button>
+          <button class="btn btn-ghost btn-xs" onclick="dismissSummary()">×</button>
         </div>
-       </div>` : '';
+      </div>
+      <p class="ai-summary">${esc(summary.summary)}</p>
+      <div class="ai-lists">
+        ${summary.keyPoints?.length?`<div><p class="ai-list-title">Key points</p><ul class="ai-list">${summary.keyPoints.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>`:''}
+        ${summary.actionItems?.length?`<div><p class="ai-list-title">Action items</p><ul class="ai-list">${summary.actionItems.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>`:''}
+      </div>
+    </div>`;
+  } else if (CFG.aiKey && m.transcript?.length > 0) {
+    aiPanelHtml = `<div style="margin-bottom:22px">
+      <button class="btn btn-purple btn-sm" onclick="doGenerateSummary()">✦ Generate AI summary</button>
+    </div>`;
+  }
 
-  const lines = m.transcript?.map(l=>`
-  <div class="t-line">
+  // ── Stats panel ───────────────────────────────────────
+  const wpm      = m.duration>0 ? Math.round((m.wordCount/m.duration)*60) : 0;
+  const speakers = [...new Set((m.transcript||[]).map(l=>l.speaker))];
+  const avgConf  = m.transcript?.filter(l=>l.confidence>0).length
+    ? Math.round(m.transcript.filter(l=>l.confidence>0).reduce((a,l)=>a+l.confidence,0)
+        / m.transcript.filter(l=>l.confidence>0).length * 100)
+    : null;
+  const statsPanel = m.transcript?.length ? `
+  <div class="stats-panel">
+    <p class="stats-panel-title">Session stats</p>
+    <div class="stats-panel-grid">
+      <div class="stat-mini"><span class="stat-mini-val">${m.transcript.length}</span><span class="stat-mini-lbl">Lines</span></div>
+      <div class="stat-mini"><span class="stat-mini-val">${wpm}</span><span class="stat-mini-lbl">Words / min</span></div>
+      <div class="stat-mini"><span class="stat-mini-val">${speakers.length}</span><span class="stat-mini-lbl">Speaker${speakers.length!==1?'s':''}</span></div>
+      <div class="stat-mini"><span class="stat-mini-val">${avgConf!==null?avgConf+'%':'—'}</span><span class="stat-mini-lbl">Avg. confidence</span></div>
+    </div>
+  </div>` : '';
+
+  // ── Word frequency chart ──────────────────────────────
+  const words = topWords(m.transcript||[]);
+  const maxFreq = words[0]?.[1] || 1;
+  const wfPanel = words.length ? `
+  <div class="wf-panel">
+    <p class="wf-title">Top words</p>
+    <div class="wf-list">
+      ${words.map(([w,c])=>`
+      <div class="wf-row">
+        <span class="wf-word">${esc(w)}</span>
+        <div class="wf-bar-wrap"><div class="wf-bar" style="width:${Math.round(c/maxFreq*100)}%"></div></div>
+        <span class="wf-count">${c}</span>
+      </div>`).join('')}
+    </div>
+  </div>` : '';
+
+  // ── Notes from recording ──────────────────────────────
+  const notesList = notes.length ? `
+  <div style="margin-bottom:22px">
+    <p class="section-lbl" style="margin-bottom:8px">📝 Notes from recording</p>
+    ${notes.map(n=>`<div class="note-item" style="border-color:var(--border)">
+      <span class="note-ts">${esc(n.recTime)}</span>
+      <span class="note-text">${esc(n.text)}</span>
+    </div>`).join('')}
+  </div>` : '';
+
+  // ── Tags ──────────────────────────────────────────────
+  const tagsHtml = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:18px">
+    ${tags.map(t=>`<span class="tag">${esc(t)}<button class="tag-x" onclick="removeTag('${esc(m.id)}','${esc(t)}')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:0 0 0 3px">×</button></span>`).join('')}
+    <button class="tag" onclick="promptTag('${esc(m.id)}')" title="Add tag"><span class="tag-add">+ tag</span></button>
+  </div>`;
+
+  // ── Search ────────────────────────────────────────────
+  const search = m.transcript?.length>3 ? `<div class="detail-search">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input class="search-inp" type="search" placeholder="Find in transcript…"
+        oninput="highlightTranscript(this.value)" id="detail-search" />
+      <button class="search-x" onclick="clearDetailSearch()">×</button>
+    </div>
+  </div>` : '';
+
+  // ── Starred filter ────────────────────────────────────
+  const hasStars = stars.size > 0;
+  const starFilterBtn = hasStars
+    ? `<button class="btn btn-ghost btn-xs" id="star-filter-btn" onclick="toggleStarFilter()" title="Show starred lines only">★ ${stars.size} starred</button>`
+    : '';
+
+  // ── Transcript lines ──────────────────────────────────
+  const lines = m.transcript?.map((l,idx)=>{
+    const cc = confClass(l.confidence);
+    const dot = cc ? `<span class="conf-dot ${cc}" title="Confidence: ${Math.round((l.confidence||0)*100)}%"></span>` : '';
+    const spkClass = speakerColorClass(l.speaker);
+    const isStarred = stars.has(idx);
+    return `
+  <div class="t-line${isStarred?' starred':''}" id="tl-detail-${idx}">
     <span class="t-ts">${esc(l.ts||l.timestamp||'')}</span>
     <div class="t-body">
-      <div class="t-speaker">${esc(l.speaker)}</div>
-      <p class="t-text" data-raw="${esc(l.text)}">${esc(l.text)}</p>
+      <div class="t-speaker ${spkClass}">
+        <span class="speaker-label-${idx}">${esc(l.speaker)}</span>${dot}
+        <button class="t-speaker-btn" onclick="editSpeaker(${idx})" title="Rename speaker">✎</button>
+        <button class="t-copy-btn" onclick="copyLine(${idx})" title="Copy line">⎘</button>
+        <button class="t-star-btn ${isStarred?'starred':''}" id="star-${idx}"
+          onclick="toggleStar('${esc(m.id)}',${idx})" title="${isStarred?'Unstar':'Star'} line">${isStarred?'★':'☆'}</button>
+      </div>
+      <div class="t-text-wrap" onclick="editLine(${idx})">
+        <p class="t-text" id="t-text-${idx}" data-raw="${esc(l.text)}">${esc(l.text)}</p>
+      </div>
     </div>
-  </div>`).join('')||'<div class="empty"><p>No transcript for this meeting.</p></div>';
+  </div>`}).join('')||'<div class="empty"><p>No transcript for this meeting.</p></div>';
+
+  // ── Export dropdown ───────────────────────────────────
+  const aiCleanBtn = CFG.aiKey && m.transcript?.length > 0
+    ? `<button class="btn btn-ghost btn-sm btn-purple" onclick="doCleanTranscript()" ${S.aiWorking?'disabled':''} title="AI fixes grammar, punctuation & misheard words">✦ AI clean-up</button>`
+    : '';
+
+  const exportDropdown = `
+  <div class="dropdown">
+    <button class="btn btn-ghost btn-sm" onclick="toggleExportMenu(event)">↓ Export ▾</button>
+    <div class="dropdown-menu" id="export-menu" style="display:none">
+      <button class="dropdown-item" onclick="copyTranscript();toggleExportMenu()">⎘ Copy to clipboard</button>
+      <div class="dropdown-sep"></div>
+      <button class="dropdown-item" onclick="exportTxt();toggleExportMenu()">📄 Plain text (.txt)</button>
+      <button class="dropdown-item" onclick="exportMd();toggleExportMenu()">📝 Markdown (.md)</button>
+      <button class="dropdown-item" onclick="exportJson();toggleExportMenu()">🗂 JSON (.json)</button>
+      ${m.audioUrl?`<button class="dropdown-item" onclick="window.open('${esc(m.audioUrl)}');toggleExportMenu()">🔊 Download audio</button>`:''}
+    </div>
+  </div>`;
 
   return `
   <div class="view"><div class="wrap">
     <div class="detail-hdr">
       <button class="back-btn" onclick="go('meetings')">← Back</button>
       <div class="detail-acts">
-        <button class="btn btn-ghost btn-sm" onclick="copyTranscript()">⎘ Copy</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportTxt()">↓ .txt</button>
+        ${aiCleanBtn}
+        ${exportDropdown}
         <button class="btn btn-ghost btn-sm btn-ghost-red" onclick="confirmDelDetail()">🗑 Delete</button>
       </div>
     </div>
-    <h1 class="detail-title">${esc(m.title)}</h1>
+    <div class="detail-title-wrap">
+      <h1 class="detail-title" id="detail-title-text">${esc(m.title)}</h1>
+      <button class="title-edit-btn" onclick="editTitle()" title="Rename meeting">✎</button>
+    </div>
     <div class="detail-chips">${chips}</div>
+    ${tagsHtml}
     ${audio}
+    ${aiPanelHtml}
+    ${notesList}
+    ${statsPanel}
+    ${wfPanel}
     ${search}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <p class="section-lbl" style="margin:0">Transcript ${hasStars?starFilterBtn:''}</p>
+      <span style="font-size:11px;color:var(--text3)">Click any line to edit · click speaker to rename</span>
+    </div>
     <div class="t-body-wrap" id="transcript-body">${lines}</div>
   </div></div>`;
 }
@@ -983,16 +1656,71 @@ function buildSettings() {
     ? `<div class="mode-banner cloud">☁️ <strong>Cloud storage active</strong> — meetings synced to Supabase</div>`
     : `<div class="mode-banner">💾 <strong>Local storage active</strong> — data is saved in this browser only</div>`;
 
+  const langs = LANGS.map(l=>`<option value="${l.code}" ${CFG.lang===l.code?'selected':''}>${l.label} (${l.code})</option>`).join('');
+
+  const confVal = CFG.conf;
+  const confLabel = confVal === 0 ? 'Off — accept all results'
+    : confVal < 0.5 ? `${Math.round(confVal*100)}% — lenient`
+    : confVal < 0.75 ? `${Math.round(confVal*100)}% — moderate`
+    : `${Math.round(confVal*100)}% — strict`;
+
   return `
   <div class="view"><div class="wrap" style="max-width:580px">
     <h1 class="page-title" style="margin-bottom:22px">Settings</h1>
     ${modeBanner}
 
     <section class="settings-sec">
+      <h2 class="settings-sec-title">🎙 Transcription accuracy</h2>
+      <p class="settings-desc">Tune how speech is captured and filtered. Changes take effect on the next recording.</p>
+      <div class="fields">
+        <div class="field">
+          <label class="field-label" for="lang-sel">Recognition language</label>
+          <select id="lang-sel" onchange="CFG.lang=this.value">${langs}</select>
+          <span class="field-hint">Must match the language spoken in your meetings for best accuracy.</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="conf-slider">Confidence threshold</label>
+          <input id="conf-slider" type="range" min="0" max="0.95" step="0.05"
+            value="${confVal}" oninput="updateConfSlider(this.value)" />
+          <div class="conf-preview">Filter: <span id="conf-label">${confLabel}</span></div>
+          <span class="field-hint">Results below this confidence score are discarded. Use 0 to keep everything.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-sec">
+      <h2 class="settings-sec-title">✦ AI features — Anthropic</h2>
+      <p class="settings-desc">
+        Add your <a href="https://console.anthropic.com/keys" target="_blank">Anthropic API key</a> to unlock
+        AI-powered meeting summaries, action item extraction, and transcript clean-up.
+        The key is stored only in your browser and is sent directly to the Anthropic API.
+      </p>
+      <div class="alert alert-info" style="margin-bottom:16px">ℹ Your API key is stored locally and never leaves your browser except in direct calls to api.anthropic.com.</div>
+      <div class="fields">
+        <div class="field">
+          <label class="field-label" for="ai-key-input">Anthropic API key</label>
+          <input id="ai-key-input" type="password" placeholder="sk-ant-…" value="${esc(CFG.aiKey)}" />
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <label for="auto-sum-chk">Auto-summarize after recording</label>
+          <small>Generates an AI summary immediately when you stop recording</small>
+        </div>
+        <input id="auto-sum-chk" type="checkbox" ${CFG.autoSum?'checked':''} onchange="CFG.autoSum=this.checked" />
+      </div>
+      <div id="ai-key-status"></div>
+      <div class="settings-btns">
+        <button class="btn btn-primary btn-sm" onclick="saveAIKey()">Save AI key</button>
+        ${CFG.aiKey ? `<button class="btn btn-ghost btn-sm btn-ghost-red" onclick="clearAIKey()">Remove key</button>` : ''}
+      </div>
+    </section>
+
+    <section class="settings-sec">
       <h2 class="settings-sec-title">☁ Supabase — free cloud database</h2>
       <p class="settings-desc">
         Connect a free <a href="https://supabase.com" target="_blank">Supabase</a> project to persist
-        meetings across sessions and devices. Transcripts go to PostgreSQL, audio files to Supabase Storage.
+        meetings across sessions and devices.
       </p>
       <ol class="steps">
         <li>Create a free project at <a href="https://supabase.com" target="_blank">supabase.com</a></li>
@@ -1021,14 +1749,14 @@ function buildSettings() {
     <section class="settings-sec">
       <h2 class="settings-sec-title">About VoiceLog</h2>
       <p class="settings-desc">
-        Open source, MIT license. Single HTML file — no build tools, no server needed.<br/>
-        Deploy by uploading <code>index.html</code> to any GitHub repo with Pages enabled.
+        Open source, MIT license. Single HTML file — no build tools, no server needed.
       </p>
       <div class="tech-row">
         <span class="tech-tag">Web Speech API</span>
         <span class="tech-tag">MediaRecorder API</span>
         <span class="tech-tag">Web Audio API</span>
-        <span class="tech-tag">Supabase</span>
+        <span class="tech-tag">Supabase (optional)</span>
+        <span class="tech-tag">Anthropic API (optional)</span>
         <span class="tech-tag">Vanilla JS</span>
       </div>
     </section>
@@ -1039,22 +1767,32 @@ function buildSettings() {
 function attachEvents() {}
 
 function go(tab) {
-  if(S.isRec && tab!=='recording') return;
-  S.tab=tab; S.error='';
-  if(tab==='meetings' || tab==='home') dbLoad(); else render();
+  if (S.isRec && tab !== 'recording') return;
+  S.tab = tab; S.error = ''; S.aiError = '';
+  if (tab === 'meetings' || tab === 'home') dbLoad(); else render();
 }
 
 function showForm() {
-  S.tab='home'; render();
-  // show inline form
+  S.tab = 'home'; render();
   const wrap = document.querySelector('.wrap');
-  if(!wrap) return;
+  if (!wrap) return;
   const cta = wrap.querySelector('.cta');
   const defaultTitle = `Meeting — ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+  const langs = LANGS.map(l=>`<option value="${l.code}" ${CFG.lang===l.code?'selected':''}>${l.label}</option>`).join('');
   cta.innerHTML = `
     <div class="form-card">
       <label class="form-label" for="meet-title-input">Meeting title <span class="opt">(optional)</span></label>
       <input id="meet-title-input" type="text" placeholder="${esc(defaultTitle)}" autofocus />
+      <div class="form-grid">
+        <div>
+          <label class="form-label" for="form-lang-sel" style="margin-top:10px">Language</label>
+          <select id="form-lang-sel" onchange="CFG.lang=this.value">${langs}</select>
+        </div>
+        <div>
+          <label class="form-label" style="margin-top:10px">Confidence filter</label>
+          <div style="padding:8px 0;font-size:13px;color:var(--text2)">${CFG.conf===0?'Off':Math.round(CFG.conf*100)+'% threshold'}</div>
+        </div>
+      </div>
       <div class="form-row">
         <button class="btn btn-red" onclick="handleStart()">⏺ Start recording</button>
         <button class="btn btn-ghost" onclick="render()">Cancel</button>
@@ -1072,34 +1810,103 @@ async function handleStart() {
 }
 
 async function handleStop() {
-  S.saving=true; render();
+  S.saving = true; render();
   try {
     const result = await stopRecording();
     const {audioBlob, ...mdata} = result;
     const saved = await dbSave(mdata, audioBlob);
     S.meetings.unshift(saved);
-    S.selected=saved;
-    S.tab='detail';
-  } catch(e){ S.error='Save failed: '+e.message; S.tab='home'; }
-  S.saving=false; render();
+    S.selected = saved;
+    S.tab = 'detail';
+    S.saving = false;
+    render();
+    // Auto-summarize if AI key set and setting on
+    if (CFG.aiKey && CFG.autoSum && saved.transcript?.length > 0) {
+      doGenerateSummaryFor(saved);
+    }
+  } catch(e) {
+    S.error = 'Save failed: '+e.message;
+    S.tab = 'home';
+    S.saving = false;
+    render();
+  }
+}
+
+async function doGenerateSummary() {
+  if (!S.selected) return;
+  await doGenerateSummaryFor(S.selected);
+}
+
+async function doGenerateSummaryFor(meeting) {
+  S.aiWorking = true; S.aiError = ''; render();
+  try {
+    const sum = await generateAISummary(meeting);
+    if (sum) saveSummaryLocal(meeting.id, sum);
+    S.aiWorking = false; render();
+  } catch(e) {
+    S.aiError = e.message; S.aiWorking = false; render();
+  }
+}
+
+async function doRegenerateSummary() {
+  if (!S.selected) return;
+  deleteSummaryLocal(S.selected.id);
+  await doGenerateSummaryFor(S.selected);
+}
+
+function dismissSummary() {
+  if (!S.selected) return;
+  deleteSummaryLocal(S.selected.id);
+  render();
+}
+
+async function doCleanTranscript() {
+  if (!S.selected) return;
+  S.aiWorking = true; S.aiError = ''; render();
+  try {
+    const fixes = await cleanTranscriptWithAI(S.selected);
+    if (fixes?.length) {
+      const fixMap = Object.fromEntries(fixes.map(f=>[String(f.id), f.text]));
+      S.selected.transcript = S.selected.transcript.map(l=>({
+        ...l, text: fixMap[String(l.id)] || l.text
+      }));
+      S.selected.wordCount = S.selected.transcript.reduce((a,l)=>a+l.text.split(/\s+/).length,0);
+      // Persist the cleaned transcript
+      const all = localLoad();
+      const idx = all.findIndex(m=>String(m.id)===String(S.selected.id));
+      if (idx>=0) {
+        all[idx].transcript = S.selected.transcript;
+        all[idx].wordCount  = S.selected.wordCount;
+        localSave(all);
+      }
+      // Also update in meetings array
+      const mi = S.meetings.findIndex(m=>String(m.id)===String(S.selected.id));
+      if (mi>=0) S.meetings[mi] = {...S.meetings[mi], ...S.selected};
+    }
+    S.aiWorking = false; render();
+  } catch(e) {
+    S.aiError = e.message; S.aiWorking = false; render();
+  }
 }
 
 function viewMeeting(id) {
   S.selected = S.meetings.find(m=>String(m.id)===String(id))||null;
-  S.tab='detail'; render();
+  S.tab = 'detail'; S.aiError = ''; render();
 }
 
-let searchTimer=null;
+let searchTimer = null;
 async function handleSearch(q) {
-  const x=el('search-x'); if(x) x.style.display=q?'block':'none';
+  const x = el('search-x'); if (x) x.style.display = q ? 'block' : 'none';
   clearTimeout(searchTimer);
-  searchTimer=setTimeout(async()=>{
+  searchTimer = setTimeout(async () => {
     const found = await dbSearch(q);
-    const list=el('meetings-list'); if(!list) return;
-    if(found.length===0){
-      list.innerHTML=`<div class="empty">${q?`No meetings match "${esc(q)}"`:'No meetings yet.'}</div>`;
+    const list = el('meetings-list'); if (!list) return;
+    if (found.length===0) {
+      list.innerHTML = `<div class="empty">${q?`No meetings match "${esc(q)}"`:'No meetings yet.'}</div>`;
     } else {
-      list.innerHTML=found.map(m=>`
+      list.innerHTML = found.map(m=>{
+        const sum = getSummary(m.id);
+        return `
       <div class="meet-row">
         <button class="meet-row-main" onclick="viewMeeting('${esc(m.id)}')">
           <div class="meet-row-top">
@@ -1112,28 +1919,29 @@ async function handleSearch(q) {
             <span>${m.wordCount} words</span>
             ${m.hasSystem?'<span class="chip chip-green">System</span>':''}
             ${m.audioUrl?'<span class="chip chip-blue">▶ Audio</span>':''}
+            ${sum?'<span class="chip chip-purple">✦ AI</span>':''}
           </div>
-          ${m.transcript?.[0]?`<p class="meet-row-preview">"${esc(m.transcript[0].text)}"</p>`:''}
+          ${sum ? `<p class="meet-row-preview">${esc(sum.summary)}</p>`
+                 : m.transcript?.[0]?`<p class="meet-row-preview">"${esc(m.transcript[0].text)}"</p>`:''}
         </button>
         <div class="meet-row-del">
           <button class="icon-btn" onclick="confirmDel(event,'${esc(m.id)}')" title="Delete">🗑</button>
         </div>
-      </div>`).join('');
+      </div>`}).join('');
     }
   }, 300);
 }
 
 function clearSearch() {
-  const inp=el('search-input'); if(inp) inp.value='';
-  const x=el('search-x'); if(x) x.style.display='none';
+  const inp = el('search-input'); if (inp) inp.value = '';
+  const x = el('search-x'); if (x) x.style.display = 'none';
   handleSearch('');
 }
 
 function confirmDel(evt, id) {
   evt.stopPropagation();
-  const btn=evt.currentTarget;
-  const wrap=btn.closest('.meet-row-del');
-  wrap.innerHTML=`<div class="confirm-del">
+  const wrap = evt.currentTarget.closest('.meet-row-del');
+  wrap.innerHTML = `<div class="confirm-del">
     <span>Delete?</span>
     <button class="btn btn-red btn-xs" onclick="doDelete(event,'${esc(id)}')">Yes</button>
     <button class="btn btn-ghost btn-xs" onclick="cancelDel(event)">No</button>
@@ -1146,22 +1954,22 @@ async function doDelete(evt, id) {
     await dbDelete(id);
     S.meetings = S.meetings.filter(m=>String(m.id)!==String(id));
     render();
-  } catch(e){ alert('Delete failed: '+e.message); }
+  } catch(e) { alert('Delete failed: '+e.message); }
 }
 
 function cancelDel(evt) {
   evt.stopPropagation();
-  const row=evt.currentTarget.closest('.meet-row');
-  const wrap=row?.querySelector('.meet-row-del');
-  if(!wrap) return;
-  const id=row.querySelector('.meet-row-main')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-  wrap.innerHTML=`<button class="icon-btn" onclick="confirmDel(event,'${esc(id||'')}')" title="Delete">🗑</button>`;
+  const row = evt.currentTarget.closest('.meet-row');
+  const wrap = row?.querySelector('.meet-row-del');
+  if (!wrap) return;
+  const id = row.querySelector('.meet-row-main')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+  wrap.innerHTML = `<button class="icon-btn" onclick="confirmDel(event,'${esc(id||'')}')" title="Delete">🗑</button>`;
 }
 
 function confirmDelDetail() {
-  const acts=document.querySelector('.detail-acts');
-  if(!acts) return;
-  acts.innerHTML=`<div class="confirm-del-inline">
+  const acts = document.querySelector('.detail-acts');
+  if (!acts) return;
+  acts.innerHTML = `<div class="confirm-del-inline">
     <span>Delete this meeting?</span>
     <button class="btn btn-red btn-xs" onclick="doDeleteDetail()">Yes, delete</button>
     <button class="btn btn-ghost btn-xs" onclick="render()">Cancel</button>
@@ -1169,56 +1977,231 @@ function confirmDelDetail() {
 }
 
 async function doDeleteDetail() {
-  const id=S.selected?.id; if(!id) return;
+  const id = S.selected?.id; if (!id) return;
   try {
     await dbDelete(id);
-    S.meetings=S.meetings.filter(m=>String(m.id)!==String(id));
-    S.selected=null; S.tab='meetings'; render();
-  } catch(e){ alert('Delete failed: '+e.message); }
+    S.meetings = S.meetings.filter(m=>String(m.id)!==String(id));
+    S.selected = null; S.tab = 'meetings'; render();
+  } catch(e) { alert('Delete failed: '+e.message); }
 }
 
 function highlightTranscript(q) {
-  document.querySelectorAll('#transcript-body .t-text').forEach(el=>{
-    const raw=el.getAttribute('data-raw')||el.textContent;
-    el.setAttribute('data-raw',raw);
-    if(!q.trim()){ el.innerHTML=esc(raw); return; }
-    const re=new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-    el.innerHTML=esc(raw).replace(re,'<mark>$1</mark>');
+  document.querySelectorAll('#transcript-body .t-text').forEach(elem=>{
+    const raw = elem.getAttribute('data-raw')||elem.textContent;
+    elem.setAttribute('data-raw',raw);
+    if (!q.trim()) { elem.innerHTML = esc(raw); return; }
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    elem.innerHTML = esc(raw).replace(re,'<mark>$1</mark>');
   });
 }
 
 function clearDetailSearch() {
-  const inp=el('detail-search'); if(inp) inp.value='';
+  const inp = el('detail-search'); if (inp) inp.value = '';
   highlightTranscript('');
 }
 
 function copyTranscript() {
-  const m=S.selected; if(!m) return;
-  const text=m.transcript.map(l=>`[${l.ts||''}] ${l.speaker}: ${l.text}`).join('\n');
+  const m = S.selected; if (!m) return;
+  const sum = getSummary(m.id);
+  let text = `${m.title}\n${fmtDate(m.date)} · ${fmt(m.duration)} · ${m.wordCount} words\n\n`;
+  if (sum) text += `Summary:\n${sum.summary}\n\n`;
+  text += m.transcript.map(l=>`[${l.ts||''}] ${l.speaker}: ${l.text}`).join('\n');
   navigator.clipboard.writeText(text).then(()=>{
-    const btn=document.querySelector('.detail-acts .btn-ghost');
-    if(btn){ btn.textContent='✓ Copied!'; setTimeout(()=>{btn.textContent='⎘ Copy';},2000); }
+    const btn = document.querySelector('.detail-acts .btn-ghost');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(()=>{btn.textContent='⎘ Copy';},2000); }
   });
 }
 
 function exportTxt() {
-  const m=S.selected; if(!m) return;
-  const lines=[
-    `VoiceLog Transcript`,``,
+  const m = S.selected; if (!m) return;
+  const sum = getSummary(m.id);
+  const lines = [
+    `VoiceLog Transcript`, ``,
     `Title:    ${m.title}`,
     `Date:     ${fmtDate(m.date)}`,
     `Duration: ${fmt(m.duration)}`,
-    `Words:    ${m.wordCount}`,``,
-    `── Transcript ──`,``,
-    ...m.transcript.map(l=>`[${l.ts||''}] ${l.speaker}: ${l.text}`)
-  ].join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([lines],{type:'text/plain'}));
-  a.download=m.title.replace(/[^a-z0-9]/gi,'_')+'.txt';
+    `Words:    ${m.wordCount}`, ``,
+  ];
+  if (sum) {
+    lines.push(`── AI Summary ──`, ``, sum.summary, ``);
+    if (sum.keyPoints?.length)   lines.push(`Key Points:`, ...sum.keyPoints.map(p=>`  • ${p}`), ``);
+    if (sum.actionItems?.length) lines.push(`Action Items:`, ...sum.actionItems.map(a=>`  • ${a}`), ``);
+  }
+  lines.push(`── Transcript ──`, ``, ...m.transcript.map(l=>`[${l.ts||''}] ${l.speaker}: ${l.text}`));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+  a.download = m.title.replace(/[^a-z0-9]/gi,'_')+'.txt';
+  a.click();
+}
+
+function exportMd() {
+  const m = S.selected; if (!m) return;
+  const sum = getSummary(m.id);
+  const lines = [
+    `# ${m.title}`, ``,
+    `**Date:** ${fmtDate(m.date)}  `,
+    `**Duration:** ${fmt(m.duration)}  `,
+    `**Words:** ${m.wordCount}`, ``,
+  ];
+  if (sum) {
+    lines.push(`## Summary`, ``, sum.summary, ``);
+    if (sum.keyPoints?.length)   lines.push(`### Key Points`, ...sum.keyPoints.map(p=>`- ${p}`), ``);
+    if (sum.actionItems?.length) lines.push(`### Action Items`, ...sum.actionItems.map(a=>`- [ ] ${a}`), ``);
+  }
+  lines.push(`## Transcript`, ``);
+  lines.push(...m.transcript.map(l=>`**\`[${l.ts||''}]\` ${l.speaker}:** ${l.text}`));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/markdown'}));
+  a.download = m.title.replace(/[^a-z0-9]/gi,'_')+'.md';
+  a.click();
+}
+
+/* ─── Inline transcript editing ─────────────────────────*/
+function editLine(idx) {
+  const m = S.selected; if (!m?.transcript?.[idx]) return;
+  const wrap = document.getElementById(`tl-detail-${idx}`)?.querySelector('.t-text-wrap');
+  const p    = document.getElementById(`t-text-${idx}`);
+  if (!wrap || !p || wrap.querySelector('.t-text-edit')) return; // already editing
+  const orig = m.transcript[idx].text;
+  wrap.innerHTML = `
+    <textarea class="t-text-edit" id="t-edit-${idx}" rows="2">${esc(orig)}</textarea>
+    <div class="t-edit-row">
+      <button class="btn btn-primary btn-xs" onclick="saveLineEdit(${idx})">Save</button>
+      <button class="btn btn-ghost btn-xs" onclick="cancelLineEdit(${idx}, '${esc(orig).replace(/'/g,"&#39;")}')">Cancel</button>
+    </div>`;
+  const ta = document.getElementById(`t-edit-${idx}`);
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+
+function saveLineEdit(idx) {
+  const m = S.selected; if (!m?.transcript?.[idx]) return;
+  const ta = document.getElementById(`t-edit-${idx}`);
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (!newText) return;
+  m.transcript[idx].text = newText;
+  m.wordCount = m.transcript.reduce((a,l)=>a+l.text.split(/\s+/).length,0);
+  _persistEdits();
+  render();
+}
+
+function cancelLineEdit(idx, orig) {
+  const wrap = document.getElementById(`tl-detail-${idx}`)?.querySelector('.t-text-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = `<p class="t-text" id="t-text-${idx}" data-raw="${esc(orig)}">${esc(orig)}</p>`;
+  // re-attach click
+  wrap.onclick = () => editLine(idx);
+}
+
+function editSpeaker(idx) {
+  const m = S.selected; if (!m?.transcript?.[idx]) return;
+  const lbl = document.querySelector(`.speaker-label-${idx}`);
+  if (!lbl || lbl.querySelector('input')) return;
+  const orig = m.transcript[idx].speaker;
+  // Collect unique speakers for quick suggestions
+  const speakers = [...new Set(m.transcript.map(l=>l.speaker))];
+  const opts = speakers.map(s=>`<option value="${esc(s)}">`).join('');
+  lbl.outerHTML = `
+    <span class="speaker-edit-wrap">
+      <datalist id="spk-dl-${idx}">${opts}</datalist>
+      <input class="speaker-edit-inp" id="spk-inp-${idx}" list="spk-dl-${idx}"
+        value="${esc(orig)}"
+        onblur="saveSpeaker(${idx})"
+        onkeydown="if(event.key==='Enter')saveSpeaker(${idx});if(event.key==='Escape')cancelSpeaker(${idx},'${esc(orig).replace(/'/g,"&#39;")}')"/>
+    </span>`;
+  const inp = document.getElementById(`spk-inp-${idx}`);
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function saveSpeaker(idx) {
+  const m = S.selected; if (!m?.transcript?.[idx]) return;
+  const inp = document.getElementById(`spk-inp-${idx}`);
+  const newName = (inp?.value||'').trim() || m.transcript[idx].speaker;
+  const oldName = m.transcript[idx].speaker;
+  // Ask: rename all occurrences of this speaker?
+  const renameAll = m.transcript.filter(l=>l.speaker===oldName).length > 1
+    && confirm(`Rename all lines by "${oldName}" to "${newName}"?`);
+  if (renameAll) {
+    m.transcript.forEach(l=>{ if (l.speaker===oldName) l.speaker=newName; });
+  } else {
+    m.transcript[idx].speaker = newName;
+  }
+  _persistEdits();
+  render();
+}
+
+function cancelSpeaker(idx, orig) {
+  render();
+}
+
+function _persistEdits() {
+  const m = S.selected; if (!m) return;
+  // Update meetings array
+  const mi = S.meetings.findIndex(x=>String(x.id)===String(m.id));
+  if (mi>=0) S.meetings[mi] = {...S.meetings[mi], transcript:m.transcript, wordCount:m.wordCount};
+  // Persist to localStorage
+  if (!isCloud()) {
+    const all = localLoad();
+    const idx = all.findIndex(x=>String(x.id)===String(m.id));
+    if (idx>=0) { all[idx].transcript=m.transcript; all[idx].wordCount=m.wordCount; localSave(all); }
+  }
+  // In cloud mode: we could upsert but that would need line-by-line updates;
+  // for now we only persist locally and note it's unsaved to cloud.
+}
+
+/* ─── Export helpers ────────────────────────────────────*/
+function exportJson() {
+  const m = S.selected; if (!m) return;
+  const sum = getSummary(m.id);
+  const payload = {
+    id: m.id,
+    title: m.title,
+    date: m.date instanceof Date ? m.date.toISOString() : m.date,
+    duration: m.duration,
+    wordCount: m.wordCount,
+    hasMic: m.hasMic,
+    hasSystem: m.hasSystem,
+    ...(sum ? {aiSummary: sum} : {}),
+    transcript: m.transcript.map(l=>({
+      ts: l.ts, speaker: l.speaker, text: l.text,
+      confidence: l.confidence || null,
+    })),
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)],{type:'application/json'}));
+  a.download = m.title.replace(/[^a-z0-9]/gi,'_')+'.json';
   a.click();
 }
 
 /* ─── Settings handlers ─────────────────────────────────*/
+function updateConfSlider(val) {
+  CFG.conf = parseFloat(val);
+  const lbl = el('conf-label');
+  if (lbl) {
+    const v = parseFloat(val);
+    lbl.textContent = v === 0 ? 'Off — accept all results'
+      : v < 0.5 ? `${Math.round(v*100)}% — lenient`
+      : v < 0.75 ? `${Math.round(v*100)}% — moderate`
+      : `${Math.round(v*100)}% — strict`;
+  }
+}
+
+function saveAIKey() {
+  const input = el('ai-key-input');
+  const key = (input?.value||'').trim();
+  const status = el('ai-key-status');
+  if (!key) { if (status) status.innerHTML=`<div class="alert alert-err" style="margin-bottom:10px">Please enter your API key.</div>`; return; }
+  if (!key.startsWith('sk-ant-')) { if (status) status.innerHTML=`<div class="alert alert-err" style="margin-bottom:10px">Key should start with <code>sk-ant-</code></div>`; return; }
+  CFG.aiKey = key;
+  if (status) status.innerHTML=`<div class="alert alert-ok" style="margin-bottom:10px">✓ API key saved.</div>`;
+  setTimeout(render, 1200);
+}
+
+function clearAIKey() {
+  CFG.aiKey = '';
+  render();
+}
+
 async function testSB() {
   const url=(el('sb-url')?.value||'').trim();
   const key=(el('sb-key')?.value||'').trim();
@@ -1254,9 +2237,186 @@ function clearSB() {
   setTimeout(()=>dbLoad(), 600);
 }
 
+/* ─── Recording notes ───────────────────────────────────*/
+function handleNoteKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitNote(); }
+}
+function submitNote() {
+  const inp = el('notes-inp'); if (!inp) return;
+  const text = inp.value.trim(); if (!text) return;
+  inp.value = '';
+  const note = {id: Date.now(), text, ts: fmtTs(), recTime: fmt(S.recTime)};
+  S.notes = S.notes || [];
+  S.notes.push(note);
+  // Reveal notes list if hidden
+  const listArea = el('notes-list-area');
+  if (listArea) {
+    listArea.style.display = '';
+    listArea.className = 'notes-list';
+    const div = document.createElement('div');
+    div.className = 'note-item'; div.id = 'note-'+note.id;
+    div.innerHTML = `<span class="note-ts">${esc(note.recTime)}</span>
+      <span class="note-text">${esc(note.text)}</span>
+      <button class="note-del" onclick="deleteNote(${note.id})" title="Remove">×</button>`;
+    listArea.appendChild(div);
+  }
+}
+function deleteNote(id) {
+  S.notes = (S.notes||[]).filter(n=>n.id!==id);
+  const e2 = document.getElementById('note-'+id); if (e2) e2.remove();
+}
+
+/* ─── Speaker management (recording) ───────────────────*/
+function bumpSpeaker() {
+  S._speakerIdx = (S._speakerIdx + 1) % S._speakerNames.length;
+  S._lastSpeechTs = 0; // reset gap timer
+  const lbl = el('live-speaker');
+  const newName = S._speakerNames[S._speakerIdx];
+  if (lbl) { lbl.textContent = newName; lbl.className = speakerColorClass(newName); }
+  // Brief visual flash to confirm
+  const btn = document.querySelector('[onclick="bumpSpeaker()"]');
+  if (btn) { btn.textContent = '✓ ' + newName; setTimeout(()=>btn.textContent='👤+', 1200); }
+}
+
+/* ─── Inline title edit (detail view) ──────────────────*/
+function editTitle() {
+  const m = S.selected; if (!m) return;
+  const wrap = document.querySelector('.detail-title-wrap');
+  if (!wrap) return;
+  const orig = m.title;
+  wrap.innerHTML = `
+    <input class="title-edit-inp" id="title-edit-inp" value="${esc(orig)}"
+      onkeydown="if(event.key==='Enter')saveTitle();if(event.key==='Escape')cancelTitle('${esc(orig).replace(/'/g,"&#39;")}')"/>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn btn-primary btn-xs" onclick="saveTitle()">Save</button>
+      <button class="btn btn-ghost btn-xs" onclick="cancelTitle('${esc(orig).replace(/'/g,"&#39;")}')">Cancel</button>
+    </div>`;
+  const inp = el('title-edit-inp'); if (inp) { inp.focus(); inp.select(); }
+}
+function saveTitle() {
+  const m = S.selected; if (!m) return;
+  const inp = el('title-edit-inp');
+  const newTitle = inp?.value.trim() || m.title;
+  m.title = newTitle;
+  const mi = S.meetings.findIndex(x=>String(x.id)===String(m.id));
+  if (mi>=0) S.meetings[mi].title = newTitle;
+  if (!isCloud()) {
+    const all = localLoad();
+    const idx = all.findIndex(x=>String(x.id)===String(m.id));
+    if (idx>=0) { all[idx].title = newTitle; localSave(all); }
+  }
+  render();
+}
+function cancelTitle(orig) {
+  const wrap = document.querySelector('.detail-title-wrap');
+  if (wrap) wrap.innerHTML = `
+    <h1 class="detail-title" id="detail-title-text">${esc(orig)}</h1>
+    <button class="title-edit-btn" onclick="editTitle()" title="Rename meeting">✎</button>`;
+}
+
+/* ─── Copy individual transcript line ───────────────────*/
+function copyLine(idx) {
+  const m = S.selected; if (!m?.transcript?.[idx]) return;
+  const l = m.transcript[idx];
+  navigator.clipboard.writeText(`[${l.ts||''}] ${l.speaker}: ${l.text}`).then(()=>{
+    const btn = document.getElementById(`tl-detail-${idx}`)?.querySelector('.t-copy-btn');
+    if (btn) { btn.textContent = '✓'; setTimeout(()=>btn.textContent='⎘', 1500); }
+  });
+}
+
+/* ─── Star filter toggle ────────────────────────────────*/
+let _starFilterOn = false;
+function toggleStarFilter() {
+  _starFilterOn = !_starFilterOn;
+  const m = S.selected; if (!m) return;
+  const stars = getStars(m.id);
+  const btn = el('star-filter-btn');
+  if (btn) btn.style.background = _starFilterOn ? 'var(--yellow-dim)' : '';
+  document.querySelectorAll('#transcript-body .t-line').forEach((row, idx) => {
+    row.style.display = _starFilterOn && !stars.has(idx) ? 'none' : '';
+  });
+}
+
+/* ─── Reset speaker colors on new recording ─────────────*/
+const _origStartRec = startRecording;
+// Patch speaker color cache reset into start recording
+const _patchedStart = async (title) => {
+  resetSpeakerColors();
+  S.notes = [];
+  await _origStartRec(title);
+};
+// Override globally
+window.handleStart = async function() {
+  const inp = el('meet-title-input');
+  const defaultTitle = `Meeting — ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+  const title = (inp?.value||'').trim() || defaultTitle;
+  resetSpeakerColors();
+  S.notes = [];
+  await startRecording(title);
+};
+
+/* ─── Save notes when meeting is saved ──────────────────*/
+const _origHandleStop = handleStop;
+window.handleStop = async function() {
+  const notesCopy = [...(S.notes||[])];
+  S.saving = true; render();
+  try {
+    const result = await stopRecording();
+    const {audioBlob, ...mdata} = result;
+    const saved = await dbSave(mdata, audioBlob);
+    S.meetings.unshift(saved);
+    S.selected = saved;
+    S.tab = 'detail';
+    // Save notes
+    if (notesCopy.length) saveMeetingNotes(saved.id, notesCopy);
+    S.saving = false; render();
+    if (CFG.aiKey && CFG.autoSum && saved.transcript?.length > 0) {
+      doGenerateSummaryFor(saved);
+    }
+  } catch(e) {
+    S.error = 'Save failed: '+e.message;
+    S.tab = 'home'; S.saving = false; render();
+  }
+};
+
+/* ─── Keyboard shortcuts ────────────────────────────────*/
+document.addEventListener('keydown', (e) => {
+  // Ctrl+Space — pause / resume during recording
+  if (e.ctrlKey && e.code === 'Space' && S.isRec) {
+    e.preventDefault();
+    S.isPaused ? resumeRecording() : pauseRecording();
+    return;
+  }
+  // Ctrl+Shift+N — new speaker during recording
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyN' && S.isRec && !S.isPaused) {
+    e.preventDefault();
+    bumpSpeaker();
+    return;
+  }
+  // Ctrl+M — focus notes input during recording
+  if (e.ctrlKey && e.code === 'KeyM' && S.isRec) {
+    e.preventDefault();
+    const inp = el('notes-inp'); if (inp) inp.focus();
+    return;
+  }
+  // Escape — clear detail search
+  if (e.code === 'Escape' && S.tab === 'detail') {
+    clearDetailSearch();
+  }
+  // Escape — close export menu
+  if (e.code === 'Escape' && _exportMenuOpen) {
+    _exportMenuOpen = false;
+    const menu = el('export-menu'); if (menu) menu.style.display = 'none';
+  }
+  // / — focus search on meetings page
+  if (e.code === 'Slash' && S.tab === 'meetings' && document.activeElement?.tagName !== 'INPUT') {
+    e.preventDefault();
+    const inp = el('search-input'); if (inp) inp.focus();
+  }
+});
+
 /* ─── Init ───────────────────────────────────────────────*/
 dbLoad();
 </script>
 </body>
 </html>
-HTMLEOF
